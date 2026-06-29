@@ -29,6 +29,7 @@
 src/
   types.ts                 Shared domain types (no logic)
   auth.ts                  Token resolution (gh → env)
+  errors.ts                Typed-error helpers (errorMessage, httpStatus) — no `any`
   octokit.ts               Octokit client factory (throttling on)
   repo.ts                  Fork-aware repo + viewer resolution (uses git + octokit)
   config.ts                Load/validate config (flags → env → file → defaults)
@@ -1025,6 +1026,7 @@ test("analyzeWithLlm maps 403 to models scope missing", async () => {
 ```ts
 import OpenAI from "openai";
 import type { FailureContext, HeuristicResult } from "../types.js";
+import { httpStatus } from "../errors.js";
 
 export interface LlmConfig { baseURL: string; apiKey?: string; model: string; }
 
@@ -1053,9 +1055,10 @@ export async function analyzeWithLlm(
       temperature: 0.2,
     });
     return res.choices[0]?.message?.content?.trim() ?? "(no response)";
-  } catch (err: any) {
-    if (err?.status === 403) throw new Error("models scope missing: run `gh auth refresh -s models` or use a PAT with models:read.");
-    if (err?.status === 429) throw new Error("LLM rate-limited; try again shortly.");
+  } catch (err) {
+    const status = httpStatus(err);
+    if (status === 403) throw new Error("models scope missing: run `gh auth refresh -s models` or use a PAT with models:read.");
+    if (status === 429) throw new Error("LLM rate-limited; try again shortly.");
     throw err;
   }
 }
@@ -1419,6 +1422,7 @@ test("stale checks response for a non-selected PR is discarded", async () => {
 ```ts
 import type { Check, PullRequest } from "./types.js";
 import { glyph } from "./format.js";
+import { errorMessage } from "./errors.js";
 
 export interface Timer { setInterval(fn: () => void, ms: number): unknown; clearInterval(h: unknown): void; }
 
@@ -1461,7 +1465,7 @@ export function createStore(deps: Deps): Store {
     if (prsInFlight) return;
     prsInFlight = true; set({ loadingPrs: true });
     try { set({ prs: await deps.loadPrs(), error: null }); }
-    catch (e: any) { set({ error: e?.message ?? String(e) }); }
+    catch (e) { set({ error: errorMessage(e) }); }
     finally { prsInFlight = false; set({ loadingPrs: false }); }
   }
 
@@ -1472,7 +1476,7 @@ export function createStore(deps: Deps): Store {
     try {
       const result = await deps.loadChecks(target);
       if (state.selectedPr === target) set({ checks: { ...state.checks, [target]: result }, error: null });
-    } catch (e: any) { set({ error: e?.message ?? String(e) }); }
+    } catch (e) { set({ error: errorMessage(e) }); }
     finally { checksInFlight = false; }
   }
 
@@ -1928,6 +1932,7 @@ import { Box, useApp, useInput } from "ink";
 import type { Store } from "../store.js";
 import type { Check, HeuristicResult, PullRequest, RepoTarget } from "../types.js";
 import type { Theme } from "../theme.js";
+import { errorMessage } from "../errors.js";
 import { PrList } from "./PrList.js";
 import { Detail } from "./Detail.js";
 import { Analysis } from "./Analysis.js";
@@ -2003,7 +2008,7 @@ export function App({ store, theme, target, onRerun, onAnalyze, openUrl }: Props
     try {
       const { heuristic: h, llm } = await onAnalyze(check);
       setHeuristic(h); setRunLlm(() => llm);
-    } catch (e: any) { setMessage(e?.message ?? String(e)); }
+    } catch (e) { setMessage(errorMessage(e)); }
   }
 
   async function doRerun() {
@@ -2012,7 +2017,7 @@ export function App({ store, theme, target, onRerun, onAnalyze, openUrl }: Props
       await onRerun(state.selectedPr!, checks);
       await store.refreshNow();
       setMessage(null);
-    } catch (e: any) { setMessage(e?.message ?? String(e)); }
+    } catch (e) { setMessage(errorMessage(e)); }
   }
 
   // 'a' triggers the deferred LLM call
@@ -2020,7 +2025,7 @@ export function App({ store, theme, target, onRerun, onAnalyze, openUrl }: Props
     if (input === "a" && !overlay) {
       if (!runLlm) { setLlmError("press ↵ on a failed check first"); return; }
       setLlmLoading(true); setLlmError(null);
-      runLlm().then((t) => setLlmText(t)).catch((e) => setLlmError(e?.message ?? String(e))).finally(() => setLlmLoading(false));
+      runLlm().then((t) => setLlmText(t)).catch((e) => setLlmError(errorMessage(e))).finally(() => setLlmLoading(false));
     }
   });
 
@@ -2101,6 +2106,7 @@ import { classify } from "./analysis/heuristic.js";
 import { analyzeWithLlm } from "./analysis/llm.js";
 import { createStore } from "./store.js";
 import { App } from "./ui/App.js";
+import { errorMessage } from "./errors.js";
 import type { Check } from "./types.js";
 
 export function parseArgs(argv: string[]): { repo?: string; help: boolean; version: boolean } {
@@ -2151,8 +2157,8 @@ export async function main() {
     const { waitUntilExit } = render(<App store={store} theme={theme} target={target} onRerun={onRerun} onAnalyze={onAnalyze} openUrl={openUrl} />);
     await waitUntilExit();
     store.stop();
-  } catch (e: any) {
-    console.error(`greenlight: ${e?.message ?? e}`);
+  } catch (e) {
+    console.error(`greenlight: ${errorMessage(e)}`);
     process.exitCode = 1;
   }
 }
