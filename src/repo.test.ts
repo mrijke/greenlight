@@ -1,4 +1,5 @@
 import { expect, test, vi } from "vitest";
+import type { Octokit } from "octokit";
 import { parseRemote, resolveTarget } from "./repo.js";
 
 test("parseRemote handles ssh and https", () => {
@@ -9,7 +10,7 @@ test("parseRemote handles ssh and https", () => {
 
 test("resolveTarget follows fork parent and reads viewer permission", async () => {
   const run = vi.fn().mockResolvedValue({ stdout: "git@github.com:me/widget.git\n" });
-  const octokit: any = {
+  const octokit = {
     rest: {
       repos: {
         get: vi.fn().mockResolvedValue({ data: { fork: true, parent: { owner: { login: "acme" }, name: "widget" } } }),
@@ -17,14 +18,14 @@ test("resolveTarget follows fork parent and reads viewer permission", async () =
       },
     },
     graphql: vi.fn().mockResolvedValue({ viewer: { login: "me" } }),
-  };
+  } as unknown as Octokit;
   const t = await resolveTarget(octokit, { run });
   expect(t).toEqual({ owner: "acme", repo: "widget", viewerLogin: "me", viewerCanWrite: true });
 });
 
 test("resolveTarget honors override and non-fork", async () => {
   const run = vi.fn();
-  const octokit: any = {
+  const octokit = {
     rest: {
       repos: {
         get: vi.fn().mockResolvedValue({ data: { fork: false } }),
@@ -32,7 +33,7 @@ test("resolveTarget honors override and non-fork", async () => {
       },
     },
     graphql: vi.fn().mockResolvedValue({ viewer: { login: "me" } }),
-  };
+  } as unknown as Octokit;
   const t = await resolveTarget(octokit, { run, override: "acme/widget" });
   expect(run).not.toHaveBeenCalled();
   expect(t.viewerCanWrite).toBe(false);

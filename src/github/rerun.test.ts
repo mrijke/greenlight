@@ -1,4 +1,5 @@
 import { expect, test, vi } from "vitest";
+import type { Octokit } from "octokit";
 import { failedRunIds, rerunFailed } from "./rerun.js";
 import type { Check, RepoTarget } from "../types.js";
 
@@ -17,7 +18,7 @@ test("failedRunIds dedups runs and ignores passing/non-failure checks", () => {
 
 test("rerunFailed calls reRunWorkflowFailedJobs once per failed run", async () => {
   const reRunWorkflowFailedJobs = vi.fn().mockResolvedValue({});
-  const octokit: any = { rest: { actions: { reRunWorkflowFailedJobs } } };
+  const octokit = { rest: { actions: { reRunWorkflowFailedJobs } } } as unknown as Pick<Octokit, "rest">;
   const res = await rerunFailed(octokit, target, [mk({ conclusion: "failure", workflowRunId: 501 }), mk({ conclusion: "failure", workflowRunId: 777 })]);
   expect(res.rerun).toEqual([501, 777]);
   expect(reRunWorkflowFailedJobs).toHaveBeenCalledTimes(2);

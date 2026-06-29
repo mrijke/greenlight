@@ -1,4 +1,5 @@
 import { expect, test, vi } from "vitest";
+import type { Octokit } from "octokit";
 import { fetchFailureContext, trimLog } from "./logs.js";
 import type { Check, RepoTarget } from "../types.js";
 
@@ -13,7 +14,7 @@ test("trimLog keeps the tail within maxLines", () => {
 });
 
 test("fetchFailureContext picks the matching failed job, trims, and reads annotations", async () => {
-  const octokit: any = { rest: { actions: {
+  const octokit = { rest: { actions: {
     listJobsForWorkflowRun: vi.fn().mockResolvedValue({ data: { jobs: [
       { name: "build", conclusion: "success", steps: [], run_attempt: 1 },
       { id: 999, name: "test (unit)", conclusion: "failure", run_attempt: 1, steps: [ { name: "Run tests", conclusion: "failure" } ] },
@@ -21,7 +22,7 @@ test("fetchFailureContext picks the matching failed job, trims, and reads annota
     downloadJobLogsForWorkflowRun: vi.fn().mockResolvedValue({ data: "AssertionError: expected 1 to equal 2\nstack..." }),
   }, checks: {
     listAnnotations: vi.fn().mockResolvedValue({ data: [ { path: "a.ts", message: "boom", annotation_level: "failure" } ] }),
-  } } };
+  } } } as unknown as Pick<Octokit, "rest">;
   const ctx = await fetchFailureContext(octokit, target, check);
   expect(ctx.jobName).toBe("test (unit)");
   expect(ctx.failingStep).toBe("Run tests");
@@ -31,9 +32,9 @@ test("fetchFailureContext picks the matching failed job, trims, and reads annota
 });
 
 test("fetchFailureContext surfaces expired logs (410)", async () => {
-  const octokit: any = { rest: { actions: {
+  const octokit = { rest: { actions: {
     listJobsForWorkflowRun: vi.fn().mockResolvedValue({ data: { jobs: [ { id: 999, name: "test (unit)", conclusion: "failure", run_attempt: 2, steps: [] } ] } }),
     downloadJobLogsForWorkflowRun: vi.fn().mockRejectedValue(Object.assign(new Error("Gone"), { status: 410 })),
-  }, checks: { listAnnotations: vi.fn().mockResolvedValue({ data: [] }) } } };
+  }, checks: { listAnnotations: vi.fn().mockResolvedValue({ data: [] }) } } } as unknown as Pick<Octokit, "rest">;
   await expect(fetchFailureContext(octokit, target, check)).rejects.toThrow(/logs expired/);
 });
