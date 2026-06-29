@@ -2,8 +2,13 @@
   "name": "greenlight",
   "version": "0.1.0",
   "type": "module",
-  "bin": { "greenlight": "dist/cli.js", "gl": "dist/cli.js" },
-  "engines": { "node": ">=20" },
+  "bin": {
+    "greenlight": "dist/cli.js",
+    "gl": "dist/cli.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
   "scripts": {
     "dev": "tsx src/cli.tsx",
     "build": "tsup",
@@ -21,6 +26,7 @@
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/node": "^20.19.43",
     "@types/react": "^18.3.0",
     "ink-testing-library": "^4.0.0",
     "tsup": "^8.3.0",

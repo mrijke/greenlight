@@ -92,6 +92,7 @@ Each `src/X.ts` has a colocated `src/X.test.ts` (or `src/**/X.test.ts`).
     "zod": "^3.23.8"
   },
   "devDependencies": {
+    "@types/node": "^20.16.0",
     "@types/react": "^18.3.0",
     "ink-testing-library": "^4.0.0",
     "tsup": "^8.3.0",
