@@ -11,6 +11,7 @@
 ## Global Constraints
 
 - **Package manager is pnpm, not npm.** Wherever the plan shows an `npm`/`npx` command, use the pnpm equivalent: `pnpm install`, `pnpm test`, `pnpm exec vitest run <file>`, `pnpm build`, `pnpm typecheck`. Commit `pnpm-lock.yaml`; never create `package-lock.json`.
+- **Type safety: no `any`, no `as any`.** Never annotate with `any`, cast with `as any`, or call generics as `<any>`. For external API responses (GraphQL/REST), declare an explicit local `interface` covering exactly the fields read, and type the call with it. In `catch` blocks, leave the variable as its default `unknown` (write `catch (e)`, not `catch (e: any)`) and narrow via the `src/errors.ts` helpers: `errorMessage(e)` and `httpStatus(e)`. Narrowing casts to a precise shape (e.g. `as { status?: unknown }` inside a helper) are acceptable; `as any` is not. `pnpm typecheck` must pass with no errors.
 - Node ≥ 20; ESM (`"type": "module"`), `"module": "NodeNext"` in tsconfig.
 - Binary names: `greenlight` and alias `gl`.
 - GitHub access is Octokit only; the token comes from `gh auth token` → `GITHUB_TOKEN` env. No OAuth app, no token persisted to disk.
@@ -758,7 +759,7 @@ git add src/github/rerun.ts src/github/rerun.test.ts && git commit -m "feat: rer
 - Test: `src/github/logs.test.ts`
 
 **Interfaces:**
-- Consumes: `Octokit` (`.rest.actions.listJobsForWorkflowRun`, `.rest.actions.downloadJobLogsForJob`, `.rest.checks.listAnnotations`), `RepoTarget`, `Check`.
+- Consumes: `Octokit` (`.rest.actions.listJobsForWorkflowRun`, `.rest.actions.downloadJobLogsForWorkflowRun`, `.rest.checks.listAnnotations`), `RepoTarget`, `Check`.
 - Produces:
   - `trimLog(raw: string, maxLines?: number): string`
   - `fetchFailureContext(octokit, target, check): Promise<FailureContext>` (throws `Error("logs expired")` on 410).
@@ -786,7 +787,7 @@ test("fetchFailureContext picks the matching failed job, trims, and reads annota
       { name: "build", conclusion: "success", steps: [], run_attempt: 1 },
       { id: 999, name: "test (unit)", conclusion: "failure", run_attempt: 1, steps: [ { name: "Run tests", conclusion: "failure" } ] },
     ] } }),
-    downloadJobLogsForJob: vi.fn().mockResolvedValue({ data: "AssertionError: expected 1 to equal 2\nstack..." }),
+    downloadJobLogsForWorkflowRun: vi.fn().mockResolvedValue({ data: "AssertionError: expected 1 to equal 2\nstack..." }),
   }, checks: {
     listAnnotations: vi.fn().mockResolvedValue({ data: [ { path: "a.ts", message: "boom", annotation_level: "failure" } ] }),
   } } };
@@ -801,7 +802,7 @@ test("fetchFailureContext picks the matching failed job, trims, and reads annota
 test("fetchFailureContext surfaces expired logs (410)", async () => {
   const octokit: any = { rest: { actions: {
     listJobsForWorkflowRun: vi.fn().mockResolvedValue({ data: { jobs: [ { id: 999, name: "test (unit)", conclusion: "failure", run_attempt: 2, steps: [] } ] } }),
-    downloadJobLogsForJob: vi.fn().mockRejectedValue(Object.assign(new Error("Gone"), { status: 410 })),
+    downloadJobLogsForWorkflowRun: vi.fn().mockRejectedValue(Object.assign(new Error("Gone"), { status: 410 })),
   }, checks: { listAnnotations: vi.fn().mockResolvedValue({ data: [] }) } } };
   await expect(fetchFailureContext(octokit, target, check)).rejects.toThrow(/logs expired/);
 });
@@ -833,7 +834,7 @@ export async function fetchFailureContext(octokit: Pick<Octokit, "rest">, target
 
   let logSlice = "";
   try {
-    const res = await octokit.rest.actions.downloadJobLogsForJob({ owner, repo, job_id: job.id });
+    const res = await octokit.rest.actions.downloadJobLogsForWorkflowRun({ owner, repo, job_id: job.id });
     logSlice = trimLog(String(res.data ?? ""));
   } catch (err: any) {
     if (err?.status === 410) throw new Error("logs expired for this run");

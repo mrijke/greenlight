@@ -18,7 +18,7 @@ test("fetchFailureContext picks the matching failed job, trims, and reads annota
       { name: "build", conclusion: "success", steps: [], run_attempt: 1 },
       { id: 999, name: "test (unit)", conclusion: "failure", run_attempt: 1, steps: [ { name: "Run tests", conclusion: "failure" } ] },
     ] } }),
-    downloadJobLogsForJob: vi.fn().mockResolvedValue({ data: "AssertionError: expected 1 to equal 2\nstack..." }),
+    downloadJobLogsForWorkflowRun: vi.fn().mockResolvedValue({ data: "AssertionError: expected 1 to equal 2\nstack..." }),
   }, checks: {
     listAnnotations: vi.fn().mockResolvedValue({ data: [ { path: "a.ts", message: "boom", annotation_level: "failure" } ] }),
   } } };
@@ -33,7 +33,7 @@ test("fetchFailureContext picks the matching failed job, trims, and reads annota
 test("fetchFailureContext surfaces expired logs (410)", async () => {
   const octokit: any = { rest: { actions: {
     listJobsForWorkflowRun: vi.fn().mockResolvedValue({ data: { jobs: [ { id: 999, name: "test (unit)", conclusion: "failure", run_attempt: 2, steps: [] } ] } }),
-    downloadJobLogsForJob: vi.fn().mockRejectedValue(Object.assign(new Error("Gone"), { status: 410 })),
+    downloadJobLogsForWorkflowRun: vi.fn().mockRejectedValue(Object.assign(new Error("Gone"), { status: 410 })),
   }, checks: { listAnnotations: vi.fn().mockResolvedValue({ data: [] }) } } };
   await expect(fetchFailureContext(octokit, target, check)).rejects.toThrow(/logs expired/);
 });

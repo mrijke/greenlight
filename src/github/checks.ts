@@ -26,10 +26,37 @@ const mapStateStatus = (state: string): CheckStatus => (state === "PENDING" || s
 const mapStateConclusion = (state: string): CheckConclusion =>
   state === "SUCCESS" ? "success" : state === "PENDING" || state === "EXPECTED" ? null : "failure";
 
+interface RollupCheckRun {
+  __typename: "CheckRun";
+  name: string;
+  status: string;
+  conclusion: string | null;
+  detailsUrl: string | null;
+  startedAt: string | null;
+  completedAt: string | null;
+  databaseId: number | null;
+  checkSuite: { databaseId: number | null; workflowRun: { databaseId: number | null } | null } | null;
+}
+interface RollupStatusContext {
+  __typename: "StatusContext";
+  context: string;
+  state: string;
+  targetUrl: string | null;
+  createdAt: string | null;
+}
+type RollupContext = RollupCheckRun | RollupStatusContext;
+interface ChecksResponse {
+  repository: {
+    pullRequest: {
+      commits: { nodes: { commit: { statusCheckRollup: { contexts: { nodes: RollupContext[] } } | null } }[] };
+    } | null;
+  } | null;
+}
+
 export async function fetchChecks(octokit: Pick<Octokit, "graphql">, target: RepoTarget, prNumber: number): Promise<Check[]> {
-  const res = await octokit.graphql<any>(QUERY, { owner: target.owner, repo: target.repo, number: prNumber });
-  const rollup = res?.repository?.pullRequest?.commits?.nodes?.[0]?.commit?.statusCheckRollup;
-  const nodes: any[] = rollup?.contexts?.nodes ?? [];
+  const res = await octokit.graphql<ChecksResponse>(QUERY, { owner: target.owner, repo: target.repo, number: prNumber });
+  const rollup = res.repository?.pullRequest?.commits?.nodes?.[0]?.commit?.statusCheckRollup;
+  const nodes: RollupContext[] = rollup?.contexts?.nodes ?? [];
   return nodes.map((n): Check => {
     if (n.__typename === "CheckRun") {
       return {
