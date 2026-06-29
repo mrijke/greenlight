@@ -987,6 +987,7 @@ git add src/analysis/heuristic.ts src/analysis/heuristic.test.ts && git commit -
 
 ```ts
 import { expect, test, vi } from "vitest";
+import type OpenAI from "openai";
 import { analyzeWithLlm, buildPrompt } from "./llm.js";
 import type { FailureContext, HeuristicResult } from "../types.js";
 
@@ -1006,7 +1007,7 @@ test("analyzeWithLlm throws when unconfigured (no apiKey)", async () => {
 
 test("analyzeWithLlm returns assistant text", async () => {
   const create = vi.fn().mockResolvedValue({ choices: [{ message: { content: "It is a real assertion failure." } }] });
-  const createClient = () => ({ chat: { completions: { create } } }) as any;
+  const createClient = () => ({ chat: { completions: { create } } }) as unknown as OpenAI;
   const out = await analyzeWithLlm({ baseURL: "x", apiKey: "k", model: "gpt-4o-mini" }, ctx, h, { createClient });
   expect(out).toContain("real assertion failure");
   expect(create).toHaveBeenCalled();
@@ -1014,7 +1015,7 @@ test("analyzeWithLlm returns assistant text", async () => {
 
 test("analyzeWithLlm maps 403 to models scope missing", async () => {
   const create = vi.fn().mockRejectedValue(Object.assign(new Error("Forbidden"), { status: 403 }));
-  const createClient = () => ({ chat: { completions: { create } } }) as any;
+  const createClient = () => ({ chat: { completions: { create } } }) as unknown as OpenAI;
   await expect(analyzeWithLlm({ baseURL: "x", apiKey: "k", model: "m" }, ctx, h, { createClient })).rejects.toThrow(/models scope missing/);
 });
 ```
