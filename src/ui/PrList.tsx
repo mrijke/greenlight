@@ -1,18 +1,18 @@
 import React from "react";
 import { Box, Text } from "ink";
-import type { PullRequest, Check } from "../types.js";
+import type { PullRequest, Check, RepoTarget } from "../types.js";
 import type { Theme } from "../theme.js";
 import { checkCounts, glyph, glyphColor, truncate, windowRows } from "../format.js";
 
-interface Props { prs: PullRequest[]; checks: Record<number, Check[]>; selected: number | null; focused: boolean; theme: Theme; height: number; }
+interface Props { prs: PullRequest[]; checks: Record<number, Check[]>; selected: number | null; focused: boolean; theme: Theme; height: number; target: RepoTarget; }
 
-export function PrList({ prs, checks, selected, focused, theme, height }: Props) {
+export function PrList({ prs, checks, selected, focused, theme, height, target }: Props) {
   const borderColor = focused ? theme.selection : theme.border;
   if (prs.length === 0) {
     return (
       <Box flexDirection="column" width={36} borderStyle="round" borderColor={borderColor} paddingX={1}>
         <Text color={theme.title}>PRs</Text>
-        <Text color={theme.meta}>No open PRs by you here.</Text>
+        <Text color={theme.meta}>No open PRs by @{target.viewerLogin} in {target.owner}/{target.repo}.</Text>
       </Box>
     );
   }

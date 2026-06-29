@@ -25,6 +25,7 @@ export interface Store {
   subscribe(fn: () => void): () => void;
   selectPr(n: number): void;
   refreshNow(): Promise<void>;
+  markRequeued(prNumber: number, runIds: number[]): void;
   start(): void;
   stop(): void;
 }
@@ -68,6 +69,19 @@ export function createStore(deps: Deps): Store {
     subscribe(fn) { subs.add(fn); return () => subs.delete(fn); },
     selectPr(n) { set({ selectedPr: n }); void loadChecks(); },
     async refreshNow() { await Promise.all([loadPrs(), loadChecks()]); },
+    markRequeued(prNumber, runIds) {
+      const runSet = new Set(runIds);
+      const cur = state.checks[prNumber];
+      if (!cur || runSet.size === 0) return;
+      const now = new Date().toISOString();
+      const updated = cur.map((c) =>
+        c.workflowRunId != null && runSet.has(c.workflowRunId)
+          ? { ...c, status: "in_progress" as const, conclusion: null, startedAt: now, completedAt: null }
+          : c,
+      );
+      set({ checks: { ...state.checks, [prNumber]: updated } });
+      void loadChecks(); // kick the fast poll immediately so the user sees movement
+    },
     start() {
       listHandle = deps.timer.setInterval(() => void loadPrs(), deps.listMs);
       checksHandle = deps.timer.setInterval(() => { if (hasPending()) void loadChecks(); }, deps.checksMs);

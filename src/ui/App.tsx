@@ -4,6 +4,7 @@ import type { Store } from "../store.js";
 import type { Check, HeuristicResult, PullRequest, RepoTarget } from "../types.js";
 import type { Theme } from "../theme.js";
 import { errorMessage } from "../errors.js";
+import { canRerun, failedRunIds } from "../github/rerun.js";
 import { PrList } from "./PrList.js";
 import { Detail } from "./Detail.js";
 import { Analysis } from "./Analysis.js";
@@ -16,7 +17,7 @@ interface Props {
   store: Store; theme: Theme; target: RepoTarget;
   onRerun: (prNumber: number, checks: Check[]) => Promise<{ rerun: number[] }>;
   onAnalyze: (check: Check) => Promise<{ heuristic: HeuristicResult; llm: () => Promise<string> }>;
-  openUrl: (url: string) => void;
+  openUrl: (url: string) => Promise<void>;
 }
 
 export function App({ store, theme, target, onRerun, onAnalyze, openUrl }: Props) {
@@ -51,11 +52,15 @@ export function App({ store, theme, target, onRerun, onAnalyze, openUrl }: Props
     if (input === "?") { setOverlay("help"); return; }
     if (key.tab || input === "h" || input === "l") { setFocus((f) => (f === "list" ? "detail" : "list")); return; }
     if (input === "r") { void store.refreshNow(); return; }
-    if (input === "o") { const url = focus === "detail" ? checks[checkCursor]?.detailsUrl ?? selectedPr?.url : selectedPr?.url; if (url) openUrl(url); return; }
+    if (input === "o") {
+      const url = focus === "detail" ? checks[checkCursor]?.detailsUrl ?? selectedPr?.url : selectedPr?.url;
+      if (url) { void openUrl(url).catch((e) => setMessage(errorMessage(e))); }
+      return;
+    }
     if (input === "R") {
       if (!target.viewerCanWrite) { setMessage(`no write access to ${target.owner}/${target.repo}`); return; }
-      const n = checks.filter((c) => c.conclusion === "failure" || c.conclusion === "timed_out").length;
-      if (n === 0) { setMessage("no failed checks to rerun"); return; }
+      const gate = canRerun(checks);
+      if (!gate.ok) { setMessage(gate.reason ?? "cannot rerun"); return; }
       setOverlay("confirm"); return;
     }
 
@@ -83,9 +88,12 @@ export function App({ store, theme, target, onRerun, onAnalyze, openUrl }: Props
   }
 
   async function doRerun() {
+    const prNumber = state.selectedPr;
+    if (prNumber == null) return;
     try {
       setMessage("rerunning failed jobs…");
-      await onRerun(state.selectedPr!, checks);
+      const res = await onRerun(prNumber, checks);
+      store.markRequeued(prNumber, res.rerun);   // optimistic flip + fast-poll kick
       await store.refreshNow();
       setMessage(null);
     } catch (e) { setMessage(errorMessage(e)); }
@@ -102,14 +110,14 @@ export function App({ store, theme, target, onRerun, onAnalyze, openUrl }: Props
 
   if (overlay === "help") return <HelpOverlay theme={theme} />;
   if (overlay === "confirm") {
-    const n = checks.filter((c) => c.conclusion === "failure" || c.conclusion === "timed_out").length;
+    const n = failedRunIds(checks).length;
     return <ConfirmOverlay message={`Rerun ${n} failed job(s)?`} theme={theme} />;
   }
 
   return (
     <Box flexDirection="column">
       <Box>
-        <PrList prs={prs} checks={state.checks} selected={state.selectedPr} focused={focus === "list"} theme={theme} height={12} />
+        <PrList prs={prs} checks={state.checks} selected={state.selectedPr} focused={focus === "list"} theme={theme} height={12} target={target} />
         <Box flexDirection="column" flexGrow={1}>
           <Detail pr={selectedPr} checks={checks} checkCursor={checkCursor} focused={focus === "detail"} theme={theme} height={12} />
           <Analysis heuristic={heuristic} llmText={llmText} llmLoading={llmLoading} llmError={llmError} theme={theme} />

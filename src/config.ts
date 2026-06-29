@@ -13,6 +13,12 @@ const FileSchema = z.object({
 
 const DEFAULT_BASE_URL = "https://models.github.ai/inference";
 
+const numEnv = (v: string | undefined): number | undefined => {
+  if (!v) return undefined;
+  const n = Number(v);
+  return Number.isFinite(n) && n > 0 ? n : undefined;
+};
+
 export function loadConfig(
   deps: { fileText?: string | null; env?: NodeJS.ProcessEnv; flags?: Partial<{ repo: string; theme: string }> } = {},
 ): Config {
@@ -26,8 +32,8 @@ export function loadConfig(
   return {
     theme: pick(deps.flags?.theme, env.GREENLIGHT_THEME, file.theme, "mocha")!,
     repo: pick(deps.flags?.repo, env.GREENLIGHT_REPO, file.repo),
-    pollListMs: pick(file.pollListMs, 30000)!,
-    pollChecksMs: pick(file.pollChecksMs, 10000)!,
+    pollListMs: pick(numEnv(env.GREENLIGHT_POLL_LIST_MS), file.pollListMs, 30000)!,
+    pollChecksMs: pick(numEnv(env.GREENLIGHT_POLL_CHECKS_MS), file.pollChecksMs, 10000)!,
     llm: {
       baseURL: pick(env.LLM_BASE_URL, file.llm?.baseURL, DEFAULT_BASE_URL)!,
       apiKey: pick(env.LLM_API_KEY, file.llm?.apiKey),

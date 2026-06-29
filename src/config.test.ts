@@ -23,3 +23,18 @@ test("invalid JSON file falls back to defaults", () => {
   const c = loadConfig({ fileText: "{ not json", env: {} });
   expect(c.theme).toBe("mocha");
 });
+
+test("env poll-interval overrides beat file and defaults", () => {
+  const c = loadConfig({
+    fileText: JSON.stringify({ pollListMs: 20000, pollChecksMs: 5000 }),
+    env: { GREENLIGHT_POLL_LIST_MS: "15000", GREENLIGHT_POLL_CHECKS_MS: "7000" },
+  });
+  expect(c.pollListMs).toBe(15000);
+  expect(c.pollChecksMs).toBe(7000);
+});
+
+test("non-numeric or non-positive env poll values are ignored", () => {
+  const c = loadConfig({ fileText: JSON.stringify({ pollListMs: 20000 }), env: { GREENLIGHT_POLL_LIST_MS: "oops", GREENLIGHT_POLL_CHECKS_MS: "0" } });
+  expect(c.pollListMs).toBe(20000);
+  expect(c.pollChecksMs).toBe(10000);
+});

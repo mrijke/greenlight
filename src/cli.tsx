@@ -61,7 +61,12 @@ export async function main() {
       const llm = () => analyzeWithLlm(config.llm, ctx, heuristic);
       return { heuristic, llm };
     };
-    const openUrl = (url: string) => { void execa("gh", ["browse", "--repo", `${target!.owner}/${target!.repo}`, url]).catch(() => {}); };
+    const openUrl = async (url: string): Promise<void> => {
+      const platform = process.platform;
+      if (platform === "darwin") await execa("open", [url]);
+      else if (platform === "win32") await execa("cmd", ["/c", "start", "", url]);
+      else await execa("xdg-open", [url]);
+    };
 
     store.start();
     const { waitUntilExit } = render(<App store={store} theme={theme} target={target} onRerun={onRerun} onAnalyze={onAnalyze} openUrl={openUrl} />);
