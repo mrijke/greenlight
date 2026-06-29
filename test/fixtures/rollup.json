@@ -1,0 +1,5 @@
+{ "repository": { "pullRequest": { "commits": { "nodes": [ { "commit": { "statusCheckRollup": { "contexts": { "nodes": [
+  { "__typename": "CheckRun", "name": "build", "status": "COMPLETED", "conclusion": "SUCCESS", "detailsUrl": "https://x/1", "startedAt": "2026-06-29T10:00:00Z", "completedAt": "2026-06-29T10:01:12Z", "databaseId": 11, "checkSuite": { "databaseId": 91, "workflowRun": { "databaseId": 501 } } },
+  { "__typename": "CheckRun", "name": "test (unit)", "status": "COMPLETED", "conclusion": "FAILURE", "detailsUrl": "https://x/2", "startedAt": "2026-06-29T10:00:00Z", "completedAt": "2026-06-29T10:00:44Z", "databaseId": 12, "checkSuite": { "databaseId": 91, "workflowRun": { "databaseId": 501 } } },
+  { "__typename": "StatusContext", "context": "ci/legacy", "state": "SUCCESS", "targetUrl": "https://x/3", "createdAt": "2026-06-29T10:00:00Z" }
+] } } } } ] } } } }
