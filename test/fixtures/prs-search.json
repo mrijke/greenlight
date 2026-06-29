@@ -1,0 +1,4 @@
+{ "search": { "nodes": [
+  { "number": 142, "title": "Fix auth flow", "url": "https://github.com/acme/widget/pull/142", "isCrossRepository": false, "headRefName": "feat/auth", "baseRefName": "main", "headRefOid": "abc123" },
+  { "number": 138, "title": "Bump deps", "url": "https://github.com/acme/widget/pull/138", "isCrossRepository": false, "headRefName": "deps", "baseRefName": "main", "headRefOid": "def456" }
+] } }
