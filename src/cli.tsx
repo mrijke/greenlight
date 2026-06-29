@@ -69,7 +69,10 @@ export async function main() {
     };
 
     store.start();
-    const { waitUntilExit } = render(<App store={store} theme={theme} target={target} onRerun={onRerun} onAnalyze={onAnalyze} openUrl={openUrl} />);
+    const { waitUntilExit } = render(
+      <App store={store} theme={theme} target={target} onRerun={onRerun} onAnalyze={onAnalyze} openUrl={openUrl} />,
+      { alternateScreen: true, exitOnCtrlC: true },
+    );
     await waitUntilExit();
     store.stop();
   } catch (e) {
