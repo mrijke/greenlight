@@ -10,6 +10,7 @@
 
 ## Global Constraints
 
+- **Package manager is pnpm, not npm.** Wherever the plan shows an `npm`/`npx` command, use the pnpm equivalent: `pnpm install`, `pnpm test`, `pnpm exec vitest run <file>`, `pnpm build`, `pnpm typecheck`. Commit `pnpm-lock.yaml`; never create `package-lock.json`.
 - Node ≥ 20; ESM (`"type": "module"`), `"module": "NodeNext"` in tsconfig.
 - Binary names: `greenlight` and alias `gl`.
 - GitHub access is Octokit only; the token comes from `gh auth token` → `GITHUB_TOKEN` env. No OAuth app, no token persisted to disk.
