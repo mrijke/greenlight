@@ -17,21 +17,22 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "execa": "^9.5.0",
-    "ink": "^7.0.0",
-    "ink-spinner": "^5.0.0",
-    "octokit": "^4.0.0",
-    "openai": "^4.67.0",
-    "react": "^19.2.0",
-    "zod": "^3.23.8"
+    "execa": "9.6.1",
+    "ink": "7.1.0",
+    "ink-spinner": "5.0.0",
+    "octokit": "5.0.5",
+    "openai": "6.45.0",
+    "react": "19.2.7",
+    "zod": "4.4.3"
   },
   "devDependencies": {
-    "@types/node": "^22.0.0",
-    "@types/react": "^19.2.0",
-    "ink-testing-library": "^4.0.0",
-    "tsup": "^8.3.0",
-    "tsx": "^4.19.0",
-    "typescript": "^5.6.0",
-    "vitest": "^2.1.0"
+    "@types/node": "26.0.1",
+    "@types/react": "19.2.17",
+    "ink-testing-library": "4.0.0",
+    "tsup": "8.5.1",
+    "tsx": "4.22.4",
+    "typescript": "6.0.3",
+    "vite": "8.1.0",
+    "vitest": "4.1.9"
   }
 }
