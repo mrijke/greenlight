@@ -1,6 +1,7 @@
 import React from "react";
 import { render } from "ink";
-import { readFileSync } from "node:fs";
+import { readFileSync, realpathSync } from "node:fs";
+import { fileURLToPath } from "node:url";
 import { execa } from "execa";
 import { resolveToken } from "./auth.js";
 import { createOctokit } from "./octokit.js";
@@ -81,7 +82,24 @@ export async function main() {
   }
 }
 
-// Only run when executed directly (not when imported by tests)
-if (process.argv[1] && import.meta.url === `file://${process.argv[1]}`) {
+// True when this module is the program entry point. Compares the *resolved*
+// real path of argv[1] against the module's own path, because an installed bin
+// (`gl`/`greenlight`) is a symlink/shim: argv[1] is the link, while
+// import.meta.url is the real file. A raw string compare misses that and the
+// CLI exits silently. See cli.test.ts.
+export function isMainModule(
+  argv1: string | undefined,
+  moduleUrl: string,
+  realpath: (p: string) => string = realpathSync,
+): boolean {
+  if (!argv1) return false;
+  try {
+    return realpath(argv1) === fileURLToPath(moduleUrl);
+  } catch {
+    return false;
+  }
+}
+
+if (isMainModule(process.argv[1], import.meta.url)) {
   void main();
 }
