@@ -1,6 +1,6 @@
 {
   "name": "@mrijke/greenlight",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Terminal UI for your open PRs and their CI checks",
   "type": "module",
   "packageManager": "pnpm@10.34.4",
