@@ -1,20 +1,47 @@
 {
-  "name": "greenlight",
+  "name": "@mrijke/greenlight",
   "version": "0.1.0",
+  "description": "Terminal UI for your open PRs and their CI checks",
   "type": "module",
+  "license": "MIT",
+  "author": "Maarten Rijke <maartenrijke@gmail.com>",
+  "homepage": "https://github.com/mrijke/greenlight#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mrijke/greenlight.git"
+  },
+  "bugs": {
+    "url": "https://github.com/mrijke/greenlight/issues"
+  },
+  "keywords": [
+    "cli",
+    "tui",
+    "ink",
+    "github",
+    "pull-requests",
+    "ci",
+    "github-actions"
+  ],
   "bin": {
     "greenlight": "dist/cli.js",
     "gl": "dist/cli.js"
   },
+  "files": [
+    "dist"
+  ],
   "engines": {
     "node": ">=22"
+  },
+  "publishConfig": {
+    "access": "public"
   },
   "scripts": {
     "dev": "tsx src/cli.tsx",
     "build": "tsup",
     "test": "vitest run",
     "test:watch": "vitest",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "prepublishOnly": "pnpm build"
   },
   "dependencies": {
     "execa": "9.6.1",

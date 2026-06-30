@@ -54,24 +54,34 @@ a triage signal so you're not reading logs by hand.
 Requires **Node ≥ 22** and an authenticated [`gh`](https://cli.github.com/) (or a
 `GITHUB_TOKEN`).
 
+With [Volta](https://volta.sh/):
+
 ```bash
-git clone <repo-url> greenlight
-cd greenlight
-pnpm install
-pnpm build
-pnpm link --global   # exposes `greenlight` and the `gl` alias
+volta install @mrijke/greenlight
 ```
 
-Then, from inside any GitHub repo:
+Or with any package manager:
+
+```bash
+npm install -g @mrijke/greenlight     # or: pnpm add -g @mrijke/greenlight
+```
+
+Either way you get the `greenlight` binary and its `gl` alias. Run it from inside any
+GitHub repo:
 
 ```bash
 gl
 ```
 
-For local development you can skip the build and run the source directly:
+### From source
+
+For local development, skip the global install and run from a clone:
 
 ```bash
-pnpm dev            # tsx src/cli.tsx
+git clone https://github.com/mrijke/greenlight.git
+cd greenlight
+pnpm install
+pnpm dev            # tsx src/cli.tsx — no build needed
 ```
 
 ---
