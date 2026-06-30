@@ -30,10 +30,10 @@ export function truncate(s: string, width: number): string {
   return s.length <= width ? s : `${s.slice(0, Math.max(0, width - 1))}…`;
 }
 
-export function windowRows<T>(items: T[], cursor: number, height: number): { rows: T[]; offset: number } {
-  if (items.length <= height) return { rows: items, offset: 0 };
-  let offset = Math.min(Math.max(0, cursor - Math.floor(height / 2)), items.length - height);
-  return { rows: items.slice(offset, offset + height), offset };
+export function windowRows<T>(items: T[], cursor: number, height: number): { rows: T[]; offset: number; above: number; below: number } {
+  if (items.length <= height) return { rows: items, offset: 0, above: 0, below: 0 };
+  const offset = Math.min(Math.max(0, cursor - Math.floor(height / 2)), items.length - height);
+  return { rows: items.slice(offset, offset + height), offset, above: offset, below: items.length - (offset + height) };
 }
 
 export function checkCounts(checks: Check[]): { pass: number; fail: number; pending: number } {
