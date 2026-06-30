@@ -3,10 +3,12 @@ import type { Check, RepoTarget } from "../types.js";
 
 const FAILED: ReadonlySet<string> = new Set(["failure", "timed_out", "startup_failure", "cancelled"]);
 
+export const isFailedConclusion = (c: Check["conclusion"]): boolean => c != null && FAILED.has(c);
+
 export function failedRunIds(checks: Check[]): number[] {
   const ids = new Set<number>();
   for (const c of checks) {
-    if (c.workflowRunId != null && c.conclusion && FAILED.has(c.conclusion)) ids.add(c.workflowRunId);
+    if (c.workflowRunId != null && isFailedConclusion(c.conclusion)) ids.add(c.workflowRunId);
   }
   return [...ids];
 }

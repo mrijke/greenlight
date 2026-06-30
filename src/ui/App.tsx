@@ -93,8 +93,10 @@ export function App({ store, theme, target, onRerun, onAnalyze, openUrl }: Props
     try {
       setMessage("rerunning failed jobs…");
       const res = await onRerun(prNumber, checks);
-      store.markRequeued(prNumber, res.rerun);   // optimistic flip + fast-poll kick
-      await store.refreshNow();
+      // Optimistic flip only; the checks interval poll reconciles once GitHub
+      // propagates the new attempt. Refetching now would clobber the flip with
+      // the stale failed rollup.
+      store.markRequeued(prNumber, res.rerun);
       setMessage(null);
     } catch (e) { setMessage(errorMessage(e)); }
   }

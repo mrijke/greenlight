@@ -39,16 +39,18 @@ test("stale checks response for a non-selected PR is discarded", async () => {
   expect(store.getState().checks[1]).toBeUndefined();
 });
 
-test("markRequeued optimistically flips affected checks to pending and kicks a reload", async () => {
+test("markRequeued flips only failed checks of the reran runs and does not refetch", async () => {
   const loadChecks = vi.fn().mockResolvedValue([check({ name: "build", conclusion: "success", workflowRunId: 501 }), check({ name: "test", conclusion: "failure", workflowRunId: 501 }), check({ name: "lint", conclusion: "failure", workflowRunId: 777 })]);
   const { timer } = fakeTimer();
   const store = createStore({ loadPrs: vi.fn().mockResolvedValue([pr(1)]), loadChecks, timer, listMs: 1, checksMs: 1 });
   store.selectPr(1);
   await store.refreshNow();
+  loadChecks.mockClear();
   store.markRequeued(1, [501]);
   const after = store.getState().checks[1]!;
-  expect(after.find((c) => c.name === "build")?.status).toBe("in_progress");
-  expect(after.find((c) => c.name === "build")?.conclusion).toBeNull();
+  expect(after.find((c) => c.name === "test")?.status).toBe("in_progress"); // failed → pending
+  expect(after.find((c) => c.name === "test")?.conclusion).toBeNull();
+  expect(after.find((c) => c.name === "build")?.conclusion).toBe("success"); // passing check untouched
   expect(after.find((c) => c.name === "lint")?.conclusion).toBe("failure"); // unaffected run stays
-  expect(loadChecks).toHaveBeenCalled(); // fast poll kicked
+  expect(loadChecks).not.toHaveBeenCalled(); // no immediate clobbering refetch
 });

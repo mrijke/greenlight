@@ -1,6 +1,7 @@
 import type { Check, PullRequest } from "./types.js";
 import { glyph } from "./format.js";
 import { errorMessage } from "./errors.js";
+import { isFailedConclusion } from "./github/rerun.js";
 
 export interface Timer { setInterval(fn: () => void, ms: number): unknown; clearInterval(h: unknown): void; }
 
@@ -74,13 +75,18 @@ export function createStore(deps: Deps): Store {
       const cur = state.checks[prNumber];
       if (!cur || runSet.size === 0) return;
       const now = new Date().toISOString();
+      // Only the failed checks are re-run by reRunWorkflowFailedJobs; passing
+      // checks of the same run are untouched, so don't flip them to pending.
       const updated = cur.map((c) =>
-        c.workflowRunId != null && runSet.has(c.workflowRunId)
+        c.workflowRunId != null && runSet.has(c.workflowRunId) && isFailedConclusion(c.conclusion)
           ? { ...c, status: "in_progress" as const, conclusion: null, startedAt: now, completedAt: null }
           : c,
       );
       set({ checks: { ...state.checks, [prNumber]: updated } });
-      void loadChecks(); // kick the fast poll immediately so the user sees movement
+      // No immediate reload: GitHub hasn't propagated the new attempt yet, so a
+      // refetch now would just clobber this optimistic flip with the stale failed
+      // rollup. The flip makes hasPending() true, so the checks interval poll
+      // resumes and reconciles once the new attempt shows up.
     },
     start() {
       listHandle = deps.timer.setInterval(() => void loadPrs(), deps.listMs);
