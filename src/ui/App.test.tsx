@@ -48,3 +48,34 @@ test("↵ opens the analysis pop-up and esc closes it", async () => {
   stdin.write("\u001B"); await sleep(30);       // esc closes (Ink buffers escape for 20ms)
   expect(lastFrame()).not.toMatch(/\[esc\] close/);
 });
+
+test("scrolling reaches the last line of an overflowing analysis body", async () => {
+  const store = mkStore();
+  await store.refreshNow(); store.selectPr(142); await store.refreshNow();
+  const big = { ...heuristic, errorLines: Array.from({ length: 20 }, (_, i) => `line ${i}`) };
+  const onAnalyze = vi.fn().mockResolvedValue({ heuristic: big, llm: () => Promise.resolve("x") });
+  const { lastFrame, stdin } = render(<App store={store} theme={getTheme("mocha")} target={target} onRerun={vi.fn()} onAnalyze={onAnalyze} openUrl={vi.fn()} llmEnabled={false} />);
+  stdin.setRawMode(); stdin.resume(); await sleep(0);
+  stdin.write("\t"); await sleep(5);            // focus → detail
+  stdin.write("\r"); await sleep(20);           // ↵ analyze
+  expect(lastFrame()).not.toContain("line 19"); // last line starts off-screen
+  for (let i = 0; i < 25; i++) { stdin.write("j"); await sleep(1); } // scroll to the bottom
+  expect(lastFrame()).toContain("line 19");     // the final line is now reachable (not clamped one short)
+});
+
+test("analysis pop-up survives a checks reload that drops the analyzed check", async () => {
+  let current: Check[] = checks;
+  const store = createStore({ loadPrs: vi.fn().mockResolvedValue(prs), loadChecks: vi.fn().mockImplementation(() => Promise.resolve(current)), timer: noTimer, listMs: 1, checksMs: 1 });
+  await store.refreshNow(); store.selectPr(142); await store.refreshNow();
+  const onAnalyze = vi.fn().mockResolvedValue({ heuristic, llm: () => Promise.resolve("x") });
+  const { lastFrame, stdin } = render(<App store={store} theme={getTheme("mocha")} target={target} onRerun={vi.fn()} onAnalyze={onAnalyze} openUrl={vi.fn()} llmEnabled={false} />);
+  stdin.setRawMode(); stdin.resume(); await sleep(0);
+  stdin.write("\t"); await sleep(5);            // focus → detail
+  stdin.write("\r"); await sleep(20);           // ↵ analyze
+  expect(lastFrame()).toMatch(/analysis/);
+  expect(lastFrame()).toContain("boom");
+  current = [];                                  // a background poll returns no checks
+  await store.refreshNow(); await sleep(5);
+  expect(lastFrame()).toMatch(/analysis/);       // still shown: snapshot, not a live index lookup
+  expect(lastFrame()).toContain("boom");
+});
