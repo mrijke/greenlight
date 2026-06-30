@@ -103,7 +103,7 @@ export async function main() {
 
     store.start();
     const { waitUntilExit } = render(
-      <App store={store} theme={theme} target={target} onRerun={onRerun} onAnalyze={onAnalyze} openUrl={openUrl} />,
+      <App store={store} theme={theme} target={target} llmEnabled={Boolean(config.llm.apiKey)} onRerun={onRerun} onAnalyze={onAnalyze} openUrl={openUrl} />,
       { alternateScreen: true, exitOnCtrlC: true },
     );
     await waitUntilExit();
