@@ -24,6 +24,13 @@ test("shows a 'more' footer when checks overflow", () => {
   expect(lastFrame()).toMatch(/more/);
 });
 
+test("footer omits the down arrow when the cursor is at the end of the list", () => {
+  const many = Array.from({ length: 30 }, (_, i) => mkCheck(`job-${i}`, "success"));
+  const { lastFrame } = render(<Detail pr={pr} checks={many} checkCursor={29} focused theme={getTheme("mocha")} width={80} visibleRows={5} />);
+  expect(lastFrame()).toMatch(/↑\d+ more/);   // rows hidden above
+  expect(lastFrame()).not.toContain("↓0");    // no confusing "↓0 more"
+});
+
 test("shows placeholder when no PR selected", () => {
   const { lastFrame } = render(<Detail pr={null} checks={[]} checkCursor={0} focused theme={getTheme("mocha")} width={80} visibleRows={10} />);
   expect(lastFrame()).toMatch(/Select a PR/i);

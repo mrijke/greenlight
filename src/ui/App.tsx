@@ -1,10 +1,11 @@
-import React, { useEffect, useState, useSyncExternalStore } from "react";
+import React, { useEffect, useRef, useState, useSyncExternalStore } from "react";
 import { Box, useApp, useInput } from "ink";
 import type { Store } from "../store.js";
 import type { Check, HeuristicResult, PullRequest, RepoTarget } from "../types.js";
 import type { Theme } from "../theme.js";
 import { errorMessage } from "../errors.js";
 import { canRerun, failedRunIds } from "../github/rerun.js";
+import { analysisWindow, countAnalysisRows } from "./analysisRows.js";
 import { computeLayout } from "./layout.js";
 import { useTerminalSize } from "./useTerminalSize.js";
 import { PrList } from "./PrList.js";
@@ -38,6 +39,9 @@ export function App({ store, theme, target, llmEnabled, onRerun, onAnalyze, open
   const [llmLoading, setLlmLoading] = useState(false);
   const [llmError, setLlmError] = useState<string | null>(null);
   const [runLlm, setRunLlm] = useState<null | (() => Promise<string>)>(null);
+  // Identifies the in-flight LLM request. Bumped on every new request and on close so
+  // a resolve from a superseded/closed pane can't write into the current one.
+  const llmReq = useRef(0);
 
   const prs: PullRequest[] = state.prs;
   const selectedPr = prs.find((p) => p.number === state.selectedPr) ?? null;
@@ -46,23 +50,15 @@ export function App({ store, theme, target, llmEnabled, onRerun, onAnalyze, open
   useEffect(() => { if (state.selectedPr == null && prs[0]) store.selectPr(prs[0].number); }, [prs.length]);
   useEffect(() => { setMessage(state.error); }, [state.error]);
 
-  const analysisBodyRows = heuristic
-    ? 1 + (heuristic.failingStep ? 1 : 0) + heuristic.errorLines.length
-      + (llmLoading ? 1 : 0) + (llmText ? llmText.split("\n").length : 0) + (llmError ? 1 : 0)
-    : 1;
+  const analysisBodyRows = heuristic ? countAnalysisRows({ heuristic, llmText, llmLoading, llmError }) : 1;
   const layout = computeLayout({ totalRows: size.rows, prCount: prs.length, analysisOpen, analysisBodyRows });
-
-  // Mirror AnalysisPane's windowing: when the body overflows it reserves one row for
-  // the "more" footer, so the last line only comes into view at this offset. Clamping
-  // to `bodyRows - visible` (without the footer row) would leave the final line unreachable.
-  const analysisShown = analysisBodyRows > layout.analysisVisible
-    ? Math.max(1, layout.analysisVisible - 1)
-    : layout.analysisVisible;
-  const analysisMaxScroll = Math.max(0, analysisBodyRows - analysisShown);
+  // Same windowing AnalysisPane renders with, so the scroll clamp and the view agree.
+  const analysisMaxScroll = analysisWindow(analysisBodyRows, layout.analysisVisible).maxScroll;
 
   function closeAnalysis() {
+    llmReq.current++;
     setAnalysisOpen(false); setAnalyzedCheck(null); setAnalysisScroll(0);
-    setHeuristic(null); setLlmText(null); setLlmError(null); setRunLlm(null);
+    setHeuristic(null); setLlmText(null); setLlmLoading(false); setLlmError(null); setRunLlm(null);
   }
 
   useInput((input, key) => {
@@ -85,8 +81,13 @@ export function App({ store, theme, target, llmEnabled, onRerun, onAnalyze, open
       if (input === "a") {
         if (!llmEnabled) { setLlmError("LLM not configured"); return; }
         if (!runLlm) { setLlmError("nothing to analyze"); return; }
+        const id = ++llmReq.current;
+        const fresh = () => llmReq.current === id; // ignore a resolve the user has moved past
         setLlmLoading(true); setLlmError(null);
-        runLlm().then((t) => setLlmText(t)).catch((e) => setLlmError(errorMessage(e))).finally(() => setLlmLoading(false));
+        runLlm()
+          .then((t) => { if (fresh()) setLlmText(t); })
+          .catch((e) => { if (fresh()) setLlmError(errorMessage(e)); })
+          .finally(() => { if (fresh()) setLlmLoading(false); });
         return;
       }
       if (key.upArrow || input === "k") { setAnalysisScroll((s) => Math.max(0, s - 1)); return; }
