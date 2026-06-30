@@ -43,7 +43,7 @@ export function PrList({ prs, checks, selected, focused, theme, width, visibleRo
           </Box>
         );
       })}
-      {overflow ? <Text color={theme.meta}>{`${win.above > 0 ? `↑${win.above} ` : ""}↓${win.below} more`}</Text> : null}
+      {overflow ? <Text color={theme.meta}>{`${win.above > 0 ? `↑${win.above} ` : ""}${win.below > 0 ? `↓${win.below} ` : ""}more`}</Text> : null}
     </Box>
   );
 }

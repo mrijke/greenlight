@@ -4,16 +4,17 @@ import Spinner from "ink-spinner";
 import type { Check, HeuristicResult } from "../types.js";
 import type { Theme } from "../theme.js";
 import { glyph, glyphColor } from "../format.js";
+import { analysisWindow, countAnalysisRows } from "./analysisRows.js";
 
 interface Props { check: Check; heuristic: HeuristicResult; llmText: string | null; llmLoading: boolean; llmError: string | null; theme: Theme; width: number; visibleRows: number; scroll: number; }
 
 const label = (v: HeuristicResult["verdict"]) => v === "likely_real" ? "likely real" : v === "likely_flaky" ? "likely flaky" : "unclear";
 
 export function AnalysisPane({ check, heuristic, llmText, llmLoading, llmError, theme, width, visibleRows, scroll }: Props) {
-  // INVARIANT: every entry pushed here renders as exactly ONE terminal row. The
-  // overflow math and the height budget (ANALYSIS_CHROME + visibleRows) both rely
-  // on lines.length === rendered rows. If you ever add a multi-line entry (e.g. a
-  // wrapped LLM line), switch this to a measured row count instead of .length.
+  // INVARIANT: every entry pushed here renders as exactly ONE terminal row, so its
+  // count matches countAnalysisRows below (the shared source App also budgets/scrolls
+  // by). If you ever add a multi-line entry (e.g. a wrapped LLM line), update
+  // countAnalysisRows to match instead of measuring .length here.
   const lines: React.ReactNode[] = [];
   lines.push(
     <Text key="v" wrap="truncate">
@@ -29,13 +30,13 @@ export function AnalysisPane({ check, heuristic, llmText, llmLoading, llmError, 
 
   // Top-anchored scroll (NOT windowRows, which centers a cursor — that would make the
   // first few down-presses move nothing until scroll passes half the height). `scroll`
-  // is a row offset; App clamps it to [0, lines - visible].
-  const overflow = lines.length > visibleRows;
-  const shown = overflow ? Math.max(1, visibleRows - 1) : visibleRows;
-  const start = Math.min(Math.max(0, scroll), Math.max(0, lines.length - shown));
+  // is a row offset App clamps to analysisWindow().maxScroll, the same window used here.
+  const total = countAnalysisRows({ heuristic, llmText, llmLoading, llmError });
+  const { overflow, shown, maxScroll } = analysisWindow(total, visibleRows);
+  const start = Math.min(Math.max(0, scroll), maxScroll);
   const body = lines.slice(start, start + shown);
   const above = start;
-  const below = lines.length - (start + body.length);
+  const below = total - (start + body.length);
   return (
     <Box flexDirection="column" width={width} borderStyle="round" borderColor={theme.flag} paddingX={1}>
       <Text color={theme.title} wrap="truncate">⚑ analysis · <Text color={glyphColor(check, theme)}>{glyph(check)}</Text> {check.name}</Text>

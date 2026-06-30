@@ -79,3 +79,22 @@ test("analysis pop-up survives a checks reload that drops the analyzed check", a
   expect(lastFrame()).toMatch(/analysis/);       // still shown: snapshot, not a live index lookup
   expect(lastFrame()).toContain("boom");
 });
+
+test("an LLM resolve from a closed pane does not leak into the next analysis", async () => {
+  const store = mkStore();
+  await store.refreshNow(); store.selectPr(142); await store.refreshNow();
+  let resolveLlm: (s: string) => void = () => {};
+  const llm = () => new Promise<string>((r) => { resolveLlm = r; });
+  const onAnalyze = vi.fn().mockResolvedValue({ heuristic, llm });
+  const { lastFrame, stdin } = render(<App store={store} theme={getTheme("mocha")} target={target} onRerun={vi.fn()} onAnalyze={onAnalyze} openUrl={vi.fn()} llmEnabled={true} />);
+  stdin.setRawMode(); stdin.resume(); await sleep(0);
+  stdin.write("\t"); await sleep(5);            // focus → detail
+  stdin.write("\r"); await sleep(20);           // ↵ analyze (pane open, runLlm ready)
+  stdin.write("a"); await sleep(5);             // start a slow LLM request
+  expect(lastFrame()).toMatch(/analyzing/);     // spinner is up
+  stdin.write(""); await sleep(30);       // esc closes — invalidates the request
+  stdin.write("\r"); await sleep(20);           // reopen analysis on the same check
+  resolveLlm("STALE ANSWER"); await sleep(10);  // the closed request resolves late
+  expect(lastFrame()).not.toContain("STALE ANSWER"); // stale result is dropped, not shown
+  expect(lastFrame()).not.toMatch(/analyzing/);      // and no spinner stuck on
+});
