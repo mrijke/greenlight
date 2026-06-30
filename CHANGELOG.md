@@ -1,5 +1,24 @@
 # Changelog
 
+## [0.2.0](https://github.com/mrijke/greenlight/compare/v0.1.2...v0.2.0) (2026-06-30)
+
+
+### Features
+
+* **format:** windowRows reports hidden-row counts ([b180dce](https://github.com/mrijke/greenlight/commit/b180dcec3d35d09f341bca5b4aa82b3ad318c078))
+* **ui:** add AnalysisPane pop-up, remove inline Analysis ([a6d91b5](https://github.com/mrijke/greenlight/commit/a6d91b54505a4408ec74eea52beb5ed218959f9d))
+* **ui:** add computeLayout height-budget function ([7783640](https://github.com/mrijke/greenlight/commit/778364043b623de4114ad2a14059a5e4fa8eff2a))
+* **ui:** add useTerminalSize hook ([8c8ddcd](https://github.com/mrijke/greenlight/commit/8c8ddcd8dbaaf56dd9cc15e3d659d25c3e52e940))
+* **ui:** checks pane fills width, dynamic rows, overflow footer ([6e87229](https://github.com/mrijke/greenlight/commit/6e872292806284ed9cd0fc04c84cca9f501e5ba6))
+* **ui:** PrList fills width, auto-sizes, shows overflow ([7f564a8](https://github.com/mrijke/greenlight/commit/7f564a89b45982dda89c23de4fed1b87571fa8fe))
+* **ui:** vertical-stack layout with full-height panes and analysis pop-up ([34ce1fc](https://github.com/mrijke/greenlight/commit/34ce1fcd6e674217eb999e46c6b859b4f42fff7e))
+
+
+### Bug Fixes
+
+* layouting issues ([253e3af](https://github.com/mrijke/greenlight/commit/253e3af4d5fb3218de8df9e41f3f69f589f34adb))
+* review fixes ([4dc2d70](https://github.com/mrijke/greenlight/commit/4dc2d702c513db502bfff95740d19118d74971d9))
+
 ## [0.1.2](https://github.com/mrijke/greenlight/compare/v0.1.1...v0.1.2) (2026-06-30)
 
 
