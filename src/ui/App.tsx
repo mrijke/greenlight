@@ -31,7 +31,7 @@ export function App({ store, theme, target, llmEnabled, onRerun, onAnalyze, open
   const [overlay, setOverlay] = useState<null | "help" | "confirm">(null);
   const [message, setMessage] = useState<string | null>(null);
   const [analysisOpen, setAnalysisOpen] = useState(false);
-  const [analyzedCheckIndex, setAnalyzedCheckIndex] = useState<number | null>(null);
+  const [analyzedCheck, setAnalyzedCheck] = useState<Check | null>(null);
   const [analysisScroll, setAnalysisScroll] = useState(0);
   const [heuristic, setHeuristic] = useState<HeuristicResult | null>(null);
   const [llmText, setLlmText] = useState<string | null>(null);
@@ -42,7 +42,6 @@ export function App({ store, theme, target, llmEnabled, onRerun, onAnalyze, open
   const prs: PullRequest[] = state.prs;
   const selectedPr = prs.find((p) => p.number === state.selectedPr) ?? null;
   const checks: Check[] = state.selectedPr != null ? state.checks[state.selectedPr] ?? [] : [];
-  const analyzedCheck = analyzedCheckIndex != null ? checks[analyzedCheckIndex] ?? null : null;
 
   useEffect(() => { if (state.selectedPr == null && prs[0]) store.selectPr(prs[0].number); }, [prs.length]);
   useEffect(() => { setMessage(state.error); }, [state.error]);
@@ -53,8 +52,16 @@ export function App({ store, theme, target, llmEnabled, onRerun, onAnalyze, open
     : 1;
   const layout = computeLayout({ totalRows: size.rows, prCount: prs.length, analysisOpen, analysisBodyRows });
 
+  // Mirror AnalysisPane's windowing: when the body overflows it reserves one row for
+  // the "more" footer, so the last line only comes into view at this offset. Clamping
+  // to `bodyRows - visible` (without the footer row) would leave the final line unreachable.
+  const analysisShown = analysisBodyRows > layout.analysisVisible
+    ? Math.max(1, layout.analysisVisible - 1)
+    : layout.analysisVisible;
+  const analysisMaxScroll = Math.max(0, analysisBodyRows - analysisShown);
+
   function closeAnalysis() {
-    setAnalysisOpen(false); setAnalyzedCheckIndex(null); setAnalysisScroll(0);
+    setAnalysisOpen(false); setAnalyzedCheck(null); setAnalysisScroll(0);
     setHeuristic(null); setLlmText(null); setLlmError(null); setRunLlm(null);
   }
 
@@ -83,7 +90,7 @@ export function App({ store, theme, target, llmEnabled, onRerun, onAnalyze, open
         return;
       }
       if (key.upArrow || input === "k") { setAnalysisScroll((s) => Math.max(0, s - 1)); return; }
-      if (key.downArrow || input === "j") { setAnalysisScroll((s) => Math.max(0, Math.min(analysisBodyRows - layout.analysisVisible, s + 1))); return; }
+      if (key.downArrow || input === "j") { setAnalysisScroll((s) => Math.max(0, Math.min(analysisMaxScroll, s + 1))); return; }
       return;
     }
 
@@ -120,7 +127,7 @@ export function App({ store, theme, target, llmEnabled, onRerun, onAnalyze, open
     const check = checks[checkCursor];
     if (!check) return;
     setLlmText(null); setLlmError(null); setAnalysisScroll(0);
-    setAnalyzedCheckIndex(checkCursor); setAnalysisOpen(true);
+    setAnalyzedCheck(check); setAnalysisOpen(true);
     try {
       const { heuristic: h, llm } = await onAnalyze(check);
       setHeuristic(h); setRunLlm(() => llm);

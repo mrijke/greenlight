@@ -224,9 +224,9 @@ git commit -m "feat(ui): add computeLayout height-budget function"
 
 - [ ] **Step 1: Write the failing test**
 
-Create `src/ui/useTerminalSize.test.tsx`. Note: `useStdout` reads from React context, so the hook is exercised through `ink-testing-library`'s `render` (which provides a fake `stdout` that is an `EventEmitter` exposing `columns` and accepting `emit("resize")`); it is NOT called bare.
+Create `src/ui/useTerminalSize.test.tsx`. Note: `useStdout` reads from React context, so the hook is exercised through `ink-testing-library`'s `render`; its returned `stdout` is an `EventEmitter` that emits `"resize"`. IMPORTANT: in `ink-testing-library@4`, `stdout.columns` is a **getter on the prototype** (fixed at 100) and there is no `rows` property — so you CANNOT assign `stdout.columns = …` (it throws `TypeError: Cannot set property columns ... which has only a getter`). Shadow both with per-instance own properties via `Object.defineProperty`, then emit `"resize"`. A microtask tick lets Ink flush the re-render before asserting.
 
-```ts
+```tsx
 import { render } from "ink-testing-library";
 import { expect, test } from "vitest";
 import React from "react";
@@ -238,12 +238,19 @@ function Probe() {
   return <Text>{`${columns}x${rows}`}</Text>;
 }
 
-test("reports fallback rows then updates on resize", () => {
+const tick = () => new Promise((r) => setTimeout(r, 0));
+
+test("reports fallback rows then updates on resize", async () => {
   const { lastFrame, stdout } = render(<Probe />);
-  // ink-testing-library's fake stdout has no `rows`, so the hook falls back to 24.
+  // ink-testing-library's fake stdout has columns=100 (getter) and no `rows`,
+  // so the hook falls back to rows: 24.
   expect(lastFrame()).toMatch(/x24$/);
-  // @ts-expect-error fake stdout is a mutable EventEmitter
-  stdout.rows = 40; stdout.columns = 120; stdout.emit("resize");
+  // columns is a getter-only prototype prop and rows is absent; shadow both with
+  // own data properties so the hook reads the new size on the next resize.
+  Object.defineProperty(stdout, "columns", { value: 120, configurable: true });
+  Object.defineProperty(stdout, "rows", { value: 40, configurable: true });
+  stdout.emit("resize");
+  await tick();
   expect(lastFrame()).toBe("120x40");
 });
 ```

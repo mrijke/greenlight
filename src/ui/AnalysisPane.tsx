@@ -40,7 +40,7 @@ export function AnalysisPane({ check, heuristic, llmText, llmLoading, llmError, 
     <Box flexDirection="column" width={width} borderStyle="round" borderColor={theme.flag} paddingX={1}>
       <Text color={theme.title} wrap="truncate">⚑ analysis · <Text color={glyphColor(check, theme)}>{glyph(check)}</Text> {check.name}</Text>
       {body}
-      {overflow ? <Text color={theme.meta}>{`${above > 0 ? `↑${above} ` : ""}↓${below} more`}</Text> : null}
+      {overflow ? <Text color={theme.meta}>{`${above > 0 ? `↑${above} ` : ""}${below > 0 ? `↓${below} ` : ""}more`}</Text> : null}
       <Text color={theme.meta}>[a] ask LLM · [o] open · [esc] close</Text>
     </Box>
   );
