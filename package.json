@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "description": "Terminal UI for your open PRs and their CI checks",
   "type": "module",
-  "packageManager": "pnpm@10.33.4",
+  "packageManager": "pnpm@10.34.4",
   "license": "MIT",
   "author": "Maarten Rijke <maartenrijke@gmail.com>",
   "homepage": "https://github.com/mrijke/greenlight#readme",
