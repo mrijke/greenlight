@@ -33,10 +33,42 @@ function readConfigFile(): string | null {
   try { return readFileSync(configPath(), "utf8"); } catch { return null; }
 }
 
+// package.json sits one level up from the bundled entry (dist/cli.js) and from
+// the source entry (src/cli.tsx), so the same relative URL works either way.
+function readPackageJson(): string | null {
+  try { return readFileSync(new URL("../package.json", import.meta.url), "utf8"); } catch { return null; }
+}
+
+export function versionString(pkgText: string | null): string {
+  if (pkgText) {
+    try {
+      const v: unknown = JSON.parse(pkgText).version;
+      if (typeof v === "string") return `greenlight ${v}`;
+    } catch { /* fall through to unknown */ }
+  }
+  return "greenlight (unknown version)";
+}
+
+export function helpText(): string {
+  return [
+    "greenlight — your open PRs and their CI checks",
+    "",
+    "Usage: greenlight [options]   (alias: gl)",
+    "",
+    "Options:",
+    "  --repo owner/name   Target a specific repo instead of the current one",
+    "  -v, --version       Print the version and exit",
+    "  -h, --help          Show this help and exit",
+    "",
+    "Run inside a GitHub repo to see your open PRs and their checks.",
+    "Keys: ↑↓ move · ⇥ pane · ↵ analyze · R rerun · a LLM · o open · q quit",
+  ].join("\n");
+}
+
 export async function main() {
   const args = parseArgs(process.argv.slice(2));
-  if (args.help) { console.log("greenlight — your open PRs + CI checks\n  --repo owner/name   override repo\n  keys: ↑↓ move, ⇥ pane, ↵ analyze, R rerun, a LLM, o open, q quit"); return; }
-  if (args.version) { console.log("greenlight 0.1.0"); return; }
+  if (args.help) { console.log(helpText()); return; }
+  if (args.version) { console.log(versionString(readPackageJson())); return; }
 
   const config = loadConfig({ fileText: readConfigFile(), flags: { repo: args.repo } });
   const theme = getTheme(config.theme);

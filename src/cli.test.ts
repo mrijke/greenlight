@@ -1,12 +1,31 @@
 import { expect, test } from "vitest";
 import { pathToFileURL } from "node:url";
-import { isMainModule, parseArgs } from "./cli.js";
+import { helpText, isMainModule, parseArgs, versionString } from "./cli.js";
 
 test("parses --repo and flags", () => {
   expect(parseArgs(["--repo", "a/b"]).repo).toBe("a/b");
   expect(parseArgs(["--help"]).help).toBe(true);
   expect(parseArgs(["--version"]).version).toBe(true);
   expect(parseArgs([]).repo).toBeUndefined();
+});
+
+test("versionString reads the version from package.json text", () => {
+  expect(versionString('{"version":"1.2.3"}')).toBe("greenlight 1.2.3");
+});
+
+test("versionString falls back when package.json is missing or unparseable", () => {
+  expect(versionString(null)).toBe("greenlight (unknown version)");
+  expect(versionString("not json")).toBe("greenlight (unknown version)");
+  expect(versionString("{}")).toBe("greenlight (unknown version)");
+});
+
+test("helpText lists usage, the alias, and every flag", () => {
+  const h = helpText();
+  expect(h).toMatch(/Usage:/);
+  expect(h).toContain("gl"); // alias
+  expect(h).toContain("--repo");
+  expect(h).toContain("--version");
+  expect(h).toContain("--help");
 });
 
 const MODULE = "/opt/app/dist/cli.js";
