@@ -30,6 +30,21 @@ test("windowRows keeps cursor visible", () => {
   expect(offset).toBeLessThanOrEqual(15);
 });
 
+test("windowRows reports hidden counts above and below", () => {
+  const items = Array.from({ length: 20 }, (_, i) => i);
+  const { rows, above, below } = windowRows(items, 15, 5);
+  expect(rows).toHaveLength(5);
+  expect(above).toBeGreaterThan(0);
+  expect(below).toBeGreaterThanOrEqual(0);
+  expect(above + rows.length + below).toBe(20);
+});
+
+test("windowRows reports zero overflow when everything fits", () => {
+  const { above, below } = windowRows([1, 2, 3], 0, 5);
+  expect(above).toBe(0);
+  expect(below).toBe(0);
+});
+
 test("checkCounts tallies", () => {
   const c = checkCounts([mk({ conclusion: "success" }), mk({ conclusion: "failure" }), mk({ status: "in_progress", conclusion: null })]);
   expect(c).toEqual({ pass: 1, fail: 1, pending: 1 });
