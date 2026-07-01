@@ -1,5 +1,20 @@
 # Changelog
 
+## [0.3.0](https://github.com/mrijke/greenlight/compare/v0.2.0...v0.3.0) (2026-07-01)
+
+
+### Features
+
+* fetch check counts and mergeable state for all PRs in the list query ([b339dba](https://github.com/mrijke/greenlight/commit/b339dba4286d4b0f8350e1ba537d1137649d0379))
+* **ui:** flag PRs with merge conflicts in the list and detail pane ([087751f](https://github.com/mrijke/greenlight/commit/087751fd21ff0df1d06a7f9c7a3e4605c8214373))
+* **ui:** mark selected check row with cursor arrow ([c228b08](https://github.com/mrijke/greenlight/commit/c228b083002ec2c4788455819685943f8686420a))
+
+
+### Bug Fixes
+
+* **store:** protect requeued PRs from list-poll clobber across navigation ([04d9157](https://github.com/mrijke/greenlight/commit/04d91573a5ca9aef2079b8deb8c52a7d2f839416))
+* **ui:** budget the merge-conflict header row in computeLayout ([21766d5](https://github.com/mrijke/greenlight/commit/21766d53296972d51a90d53f6ec15c132146c3c1))
+
 ## [0.2.0](https://github.com/mrijke/greenlight/compare/v0.1.2...v0.2.0) (2026-06-30)
 
 
