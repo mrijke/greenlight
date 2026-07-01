@@ -13,6 +13,7 @@ import { Detail } from "./Detail.js";
 import { AnalysisPane } from "./AnalysisPane.js";
 import { ConfirmOverlay, HelpOverlay } from "./Overlay.js";
 import { StatusBar } from "./StatusBar.js";
+import { groupChecks, flattenRows, deriveExpanded, rowId, type Override } from "./checkGroups.js";
 
 const HINTS = "↑↓ move · ⇥ pane · ↵ analyze · R rerun · r refresh · o open · ? help · q quit";
 
@@ -28,7 +29,8 @@ export function App({ store, theme, target, llmEnabled, onRerun, onAnalyze, open
   const size = useTerminalSize();
   const state = useSyncExternalStore(store.subscribe, store.getState, store.getState);
   const [focus, setFocus] = useState<"list" | "detail">("list");
-  const [checkCursor, setCheckCursor] = useState(0);
+  const [overrides, setOverrides] = useState<Map<string, Override>>(new Map());
+  const [cursorId, setCursorId] = useState<string | null>(null);
   const [overlay, setOverlay] = useState<null | "help" | "confirm">(null);
   const [message, setMessage] = useState<string | null>(null);
   const [analysisOpen, setAnalysisOpen] = useState(false);
@@ -47,8 +49,15 @@ export function App({ store, theme, target, llmEnabled, onRerun, onAnalyze, open
   const selectedPr = prs.find((p) => p.number === state.selectedPr) ?? null;
   const checks: Check[] = state.selectedPr != null ? state.checks[state.selectedPr] ?? [] : [];
 
+  const groups = groupChecks(checks);
+  const expanded = deriveExpanded(groups, overrides);
+  const rows = flattenRows(groups, expanded);
+  const foundCursor = rows.findIndex((r) => rowId(r) === cursorId);
+  const cursorIndex = foundCursor >= 0 ? foundCursor : 0;
+
   useEffect(() => { if (state.selectedPr == null && prs[0]) store.selectPr(prs[0].number); }, [prs.length]);
   useEffect(() => { setMessage(state.error); }, [state.error]);
+  useEffect(() => { setOverrides(new Map()); setCursorId(null); }, [state.selectedPr]);
 
   const analysisBodyRows = heuristic ? countAnalysisRows({ heuristic, llmText, llmLoading, llmError }) : 1;
   const layout = computeLayout({ totalRows: size.rows, prCount: prs.length, analysisOpen, analysisBodyRows, selectedConflicting: selectedPr?.mergeable === "CONFLICTING" });
@@ -100,7 +109,11 @@ export function App({ store, theme, target, llmEnabled, onRerun, onAnalyze, open
     if (key.tab || input === "h" || input === "l") { setFocus((f) => (f === "list" ? "detail" : "list")); return; }
     if (input === "r") { void store.refreshNow(); return; }
     if (input === "o") {
-      const url = focus === "detail" ? checks[checkCursor]?.detailsUrl ?? selectedPr?.url : selectedPr?.url;
+      let url: string | undefined = selectedPr?.url;
+      if (focus === "detail") {
+        const row = rows[cursorIndex];
+        if (row?.kind === "check") url = row.check.detailsUrl ?? selectedPr?.url;
+      }
       if (url) void openUrl(url).catch((e) => setMessage(errorMessage(e)));
       return;
     }
@@ -116,17 +129,28 @@ export function App({ store, theme, target, llmEnabled, onRerun, onAnalyze, open
     if (focus === "list" && (up || down)) {
       const idx = prs.findIndex((p) => p.number === state.selectedPr);
       const next = Math.min(prs.length - 1, Math.max(0, idx + (down ? 1 : -1)));
-      if (prs[next]) { store.selectPr(prs[next].number); setCheckCursor(0); }
+      if (prs[next]) store.selectPr(prs[next].number); // overrides/cursor reset via the selectedPr effect
     } else if (focus === "detail" && (up || down)) {
-      setCheckCursor((c) => Math.min(checks.length - 1, Math.max(0, c + (down ? 1 : -1))));
+      const next = Math.min(rows.length - 1, Math.max(0, cursorIndex + (down ? 1 : -1)));
+      const row = rows[next];
+      if (row) setCursorId(rowId(row));
     } else if (key.return && focus === "detail") {
-      void analyze();
+      const row = rows[cursorIndex];
+      if (!row) return;
+      if (row.kind === "header") {
+        const gkey = row.group.key;
+        const isOpen = expanded.has(gkey);
+        setOverrides((prev) => { const n = new Map(prev); n.set(gkey, isOpen ? "collapsed" : "expanded"); return n; });
+      } else {
+        void analyze();
+      }
     }
   });
 
   async function analyze() {
-    const check = checks[checkCursor];
-    if (!check) return;
+    const row = rows[cursorIndex];
+    if (!row || row.kind !== "check") return;
+    const check = row.check;
     setLlmText(null); setLlmError(null); setAnalysisScroll(0);
     setAnalyzedCheck(check); setAnalysisOpen(true);
     try {
@@ -155,7 +179,7 @@ export function App({ store, theme, target, llmEnabled, onRerun, onAnalyze, open
   return (
     <Box flexDirection="column">
       <PrList prs={prs} checks={state.checks} selected={state.selectedPr} focused={focus === "list"} theme={theme} width={size.columns} visibleRows={layout.prVisible} target={target} />
-      <Detail pr={selectedPr} checks={checks} checkCursor={checkCursor} focused={focus === "detail"} theme={theme} width={size.columns} visibleRows={layout.checksVisible} />
+      <Detail pr={selectedPr} rows={rows} cursor={cursorIndex} focused={focus === "detail"} theme={theme} width={size.columns} visibleRows={layout.checksVisible} />
       {analysisOpen && analyzedCheck && heuristic ? (
         <AnalysisPane check={analyzedCheck} heuristic={heuristic} llmText={llmText} llmLoading={llmLoading} llmError={llmError} theme={theme} width={size.columns} visibleRows={layout.analysisVisible} scroll={analysisScroll} />
       ) : null}
