@@ -10,10 +10,13 @@ test("groups checks by workflowRunId and titles them by workflow name", () => {
     mk({ name: "lint", workflowRunId: 1, workflowName: "Project A", conclusion: "success" }),
     mk({ name: "ci-cd", workflowRunId: 2, workflowName: "Project B", conclusion: "failure" }),
   ]);
-  expect(groups.map((g) => g.title)).toEqual(["Project A", "Project B"]);
-  expect(groups[0].checks.map((c) => c.name)).toEqual(["build", "lint"]); // push order preserved
-  expect(groups[0].counts).toEqual({ pass: 2, fail: 0, pending: 0 });
-  expect(groups[1].status).toBe("fail");
+  // look up by title so this bucketing test doesn't depend on sort order (covered separately)
+  const a = groups.find((g) => g.title === "Project A")!;
+  const b = groups.find((g) => g.title === "Project B")!;
+  expect(groups).toHaveLength(2);
+  expect(a.checks.map((c) => c.name)).toEqual(["build", "lint"]); // push order preserved
+  expect(a.counts).toEqual({ pass: 2, fail: 0, pending: 0 });
+  expect(b.status).toBe("fail");
 });
 
 test("two workflows sharing a name stay separate groups (keyed by run id)", () => {
@@ -24,13 +27,31 @@ test("two workflows sharing a name stay separate groups (keyed by run id)", () =
   expect(groups).toHaveLength(2);
 });
 
-test("workflow-less checks collect into an 'Other' group sorted last, rest alphabetical", () => {
+test("groups of equal status (incl. 'Other') sort alphabetically by title", () => {
   const groups = groupChecks([
     mk({ name: "vercel", workflowRunId: null, workflowName: null }),
     mk({ name: "build", workflowRunId: 5, workflowName: "Zeta" }),
     mk({ name: "build", workflowRunId: 3, workflowName: "Alpha" }),
   ]);
-  expect(groups.map((g) => g.title)).toEqual(["Alpha", "Zeta", "Other"]);
+  // all passing → same status rank → title order; "Other" is no longer pinned last
+  expect(groups.map((g) => g.title)).toEqual(["Alpha", "Other", "Zeta"]);
+});
+
+test("groups sort by status first (fail, then pending, then pass, then skip), title breaking ties", () => {
+  const groups = groupChecks([
+    mk({ name: "z", workflowRunId: 1, workflowName: "Zeta-pass", conclusion: "success" }),
+    mk({ name: "a", workflowRunId: 2, workflowName: "Alpha-pass", conclusion: "success" }),
+    mk({ name: "w", workflowRunId: 3, workflowName: "Whiskey-fail", conclusion: "failure" }),
+    mk({ name: "p", workflowRunId: 4, workflowName: "Papa-run", status: "in_progress", conclusion: null }),
+    mk({ name: "s", workflowRunId: 5, workflowName: "Sierra-skip", conclusion: "skipped" }),
+  ]);
+  expect(groups.map((g) => g.title)).toEqual([
+    "Whiskey-fail",  // fail
+    "Papa-run",      // pending
+    "Alpha-pass",    // pass (alphabetical before Zeta-pass)
+    "Zeta-pass",     // pass
+    "Sierra-skip",   // skip, last
+  ]);
 });
 
 test("a group of only skipped checks reads as skip with a ⊘ glyph", () => {
