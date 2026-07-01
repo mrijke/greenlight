@@ -27,12 +27,14 @@ function groupStatus(counts: { pass: number; fail: number; pending: number }): G
   return "skip"; // checks present but all skipped/neutral (or empty)
 }
 
-// Real groups sort alphabetically by title; the synthetic "Other" group is always last.
-// Alphabetical is deterministic and stable across polls (unlike rollup order or a status
-// sort, which would reorder rows as CI transitions).
+// Sort by status first — failures on top, then in-progress, then passing, then
+// all-skipped — with title breaking ties alphabetically. The identity-based cursor
+// follows its group across the reordering a status transition causes. "Other" carries
+// its own status like any group, so a failing legacy/third-party check surfaces on top.
+const STATUS_RANK: Record<GroupStatus, number> = { fail: 0, pending: 1, pass: 2, skip: 3 };
 function compareGroups(a: CheckGroup, b: CheckGroup): number {
-  if (a.key === OTHER_KEY) return 1;
-  if (b.key === OTHER_KEY) return -1;
+  const byStatus = STATUS_RANK[a.status] - STATUS_RANK[b.status];
+  if (byStatus !== 0) return byStatus;
   return a.title.toLowerCase().localeCompare(b.title.toLowerCase());
 }
 
