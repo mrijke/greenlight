@@ -9,19 +9,20 @@ export const CHECKS_MIN_BODY = 3;
 const ANALYSIS_FLOOR = 1;          // never render the pop-up with an empty body
 const MIN_TOTAL = 8;
 
-export interface LayoutInput { totalRows: number; prCount: number; analysisOpen: boolean; analysisBodyRows: number; }
+export interface LayoutInput { totalRows: number; prCount: number; analysisOpen: boolean; analysisBodyRows: number; selectedConflicting?: boolean; }
 export interface LayoutResult { prVisible: number; checksVisible: number; analysisVisible: number; }
 
 const clamp = (n: number, lo: number, hi: number) => Math.max(lo, Math.min(hi, n));
 
 export function computeLayout(input: LayoutInput): LayoutResult {
-  const { totalRows, prCount, analysisOpen, analysisBodyRows } = input;
+  const { totalRows, prCount, analysisOpen, analysisBodyRows, selectedConflicting } = input;
   const avail = Math.max(MIN_TOTAL, totalRows) - STATUS_ROWS;
 
   let prVisible = Math.max(1, Math.min(prCount === 0 ? 1 : prCount, PR_CAP));
   let analysisVisible = analysisOpen ? clamp(analysisBodyRows, ANALYSIS_MIN_BODY, ANALYSIS_MAX_BODY) : 0;
 
-  const checks = () => avail - (PR_CHROME + prVisible) - (analysisOpen ? ANALYSIS_CHROME + analysisVisible : 0) - CHECKS_CHROME;
+  const checksChrome = CHECKS_CHROME + (selectedConflicting ? 1 : 0);
+  const checks = () => avail - (PR_CHROME + prVisible) - (analysisOpen ? ANALYSIS_CHROME + analysisVisible : 0) - checksChrome;
 
   // Checks keeps priority: it is reduced last (only by the final max(1, …) clamp).
   // Borrow from everything else first, in order — analysis to its body-min, then the
