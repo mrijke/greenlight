@@ -7,13 +7,13 @@ import { getTheme } from "../theme.js";
 import type { Check, PullRequest, RepoTarget } from "../types.js";
 
 const target: RepoTarget = { owner: "acme", repo: "widget", viewerLogin: "me", viewerCanWrite: true };
-const prs: PullRequest[] = [{ number: 142, title: "Fix auth flow", url: "u", isCrossRepository: false, headRefName: "a", baseRefName: "main", headSha: "s" }];
+const prs: PullRequest[] = [{ number: 142, title: "Fix auth flow", url: "u", isCrossRepository: false, mergeable: "MERGEABLE", headRefName: "a", baseRefName: "main", headSha: "s" }];
 const checks: Check[] = [{ name: "test", status: "completed", conclusion: "failure", detailsUrl: null, startedAt: null, completedAt: null, checkRunId: 1, checkSuiteId: 1, workflowRunId: 1, isStatusContext: false }];
 const noTimer = { setInterval: () => 0, clearInterval: () => {} };
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 function mkStore() {
-  return createStore({ loadPrs: vi.fn().mockResolvedValue(prs), loadChecks: vi.fn().mockResolvedValue(checks), timer: noTimer, listMs: 1, checksMs: 1 });
+  return createStore({ loadPrs: vi.fn().mockResolvedValue({ prs, checks: {} }), loadChecks: vi.fn().mockResolvedValue(checks), timer: noTimer, listMs: 1, checksMs: 1 });
 }
 const heuristic = { verdict: "likely_flaky" as const, confidence: 0.7, failingStep: null, errorLines: ["boom"], signals: ["timeout"] };
 
@@ -65,7 +65,7 @@ test("scrolling reaches the last line of an overflowing analysis body", async ()
 
 test("analysis pop-up survives a checks reload that drops the analyzed check", async () => {
   let current: Check[] = checks;
-  const store = createStore({ loadPrs: vi.fn().mockResolvedValue(prs), loadChecks: vi.fn().mockImplementation(() => Promise.resolve(current)), timer: noTimer, listMs: 1, checksMs: 1 });
+  const store = createStore({ loadPrs: vi.fn().mockResolvedValue({ prs, checks: {} }), loadChecks: vi.fn().mockImplementation(() => Promise.resolve(current)), timer: noTimer, listMs: 1, checksMs: 1 });
   await store.refreshNow(); store.selectPr(142); await store.refreshNow();
   const onAnalyze = vi.fn().mockResolvedValue({ heuristic, llm: () => Promise.resolve("x") });
   const { lastFrame, stdin } = render(<App store={store} theme={getTheme("mocha")} target={target} onRerun={vi.fn()} onAnalyze={onAnalyze} openUrl={vi.fn()} llmEnabled={false} />);

@@ -14,7 +14,7 @@ export interface StoreState {
 }
 
 interface Deps {
-  loadPrs: () => Promise<PullRequest[]>;
+  loadPrs: () => Promise<{ prs: PullRequest[]; checks: Record<number, Check[]> }>;
   loadChecks: (prNumber: number) => Promise<Check[]>;
   timer: Timer;
   listMs: number;
@@ -44,7 +44,18 @@ export function createStore(deps: Deps): Store {
   async function loadPrs() {
     if (prsInFlight) return;
     prsInFlight = true; set({ loadingPrs: true });
-    try { set({ prs: await deps.loadPrs(), error: null }); }
+    try {
+      const { prs, checks } = await deps.loadPrs();
+      // Rebuild the checks map from list data (closed PRs drop out), but keep the
+      // existing entry for the currently-selected PR — it's owned by loadChecks
+      // (fast poll + stale guard). Read selectedPr *now*, after the await (S2).
+      const sel = state.selectedPr;
+      const merged: Record<number, Check[]> = {};
+      for (const p of prs) {
+        merged[p.number] = p.number === sel && state.checks[p.number] ? state.checks[p.number] : (checks[p.number] ?? []);
+      }
+      set({ prs, checks: merged, error: null });
+    }
     catch (e) { set({ error: errorMessage(e) }); }
     finally { prsInFlight = false; set({ loadingPrs: false }); }
   }

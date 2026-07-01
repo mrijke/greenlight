@@ -24,6 +24,7 @@ export interface PullRequest {
   headSha: string;
   url: string;
   isCrossRepository: boolean;    // fork PR
+  mergeable: "MERGEABLE" | "CONFLICTING" | "UNKNOWN";
 }
 
 export interface RepoTarget {
