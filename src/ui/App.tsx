@@ -51,7 +51,7 @@ export function App({ store, theme, target, llmEnabled, onRerun, onAnalyze, open
   useEffect(() => { setMessage(state.error); }, [state.error]);
 
   const analysisBodyRows = heuristic ? countAnalysisRows({ heuristic, llmText, llmLoading, llmError }) : 1;
-  const layout = computeLayout({ totalRows: size.rows, prCount: prs.length, analysisOpen, analysisBodyRows });
+  const layout = computeLayout({ totalRows: size.rows, prCount: prs.length, analysisOpen, analysisBodyRows, selectedConflicting: selectedPr?.mergeable === "CONFLICTING" });
   // Same windowing AnalysisPane renders with, so the scroll clamp and the view agree.
   const analysisMaxScroll = analysisWindow(analysisBodyRows, layout.analysisVisible).maxScroll;
 

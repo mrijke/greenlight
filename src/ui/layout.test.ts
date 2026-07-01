@@ -45,3 +45,9 @@ test("tiny terminal degrades gracefully: checks last, analysis never empty, all 
   expect(r.analysisVisible).toBeGreaterThanOrEqual(1); // pop-up never empty
   expect(r.analysisVisible).toBeLessThan(ANALYSIS_MIN_BODY); // squeezed below its body-min
 });
+
+test("a conflicting selected PR reserves one extra Detail header row", () => {
+  const base = computeLayout({ totalRows: 40, prCount: 3, analysisOpen: false, analysisBodyRows: 1 });
+  const conflict = computeLayout({ totalRows: 40, prCount: 3, analysisOpen: false, analysisBodyRows: 1, selectedConflicting: true });
+  expect(conflict.checksVisible).toBe(base.checksVisible - 1);
+});
