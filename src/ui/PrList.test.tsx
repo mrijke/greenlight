@@ -6,7 +6,7 @@ import { getTheme } from "../theme.js";
 import type { PullRequest, Check, RepoTarget } from "../types.js";
 
 const target: RepoTarget = { owner: "acme", repo: "widget", viewerLogin: "me", viewerCanWrite: true };
-const mkPr = (n: number, title: string): PullRequest => ({ number: n, title, url: "", isCrossRepository: false, headRefName: "a", baseRefName: "main", headSha: "s" });
+const mkPr = (n: number, title: string): PullRequest => ({ number: n, title, url: "", isCrossRepository: false, mergeable: "MERGEABLE", headRefName: "a", baseRefName: "main", headSha: "s" });
 const prs: PullRequest[] = [mkPr(142, "Fix auth flow")];
 const checks: Record<number, Check[]> = { 142: [{ name: "test", status: "completed", conclusion: "failure", detailsUrl: null, startedAt: null, completedAt: null, checkRunId: null, checkSuiteId: null, workflowRunId: null, isStatusContext: false }] };
 
