@@ -27,6 +27,7 @@ export function Detail({ pr, checks, checkCursor, focused, theme, width, visible
         const isSel = checks.indexOf(c) === checkCursor;
         return (
           <Box key={c.name + i}>
+            <Text color={isSel ? theme.selection : undefined}>{isSel ? "❯ " : "  "}</Text>
             <Text color={glyphColor(c, theme)}>{glyph(c)} </Text>
             <Text color={isSel ? theme.selection : theme.checkName}>{truncate(c.name, 22).padEnd(22)} </Text>
             <Text color={theme.meta}>{formatDuration(c.startedAt, c.completedAt)}</Text>

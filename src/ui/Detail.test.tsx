@@ -31,6 +31,12 @@ test("footer omits the down arrow when the cursor is at the end of the list", ()
   expect(lastFrame()).not.toContain("↓0");    // no confusing "↓0 more"
 });
 
+test("marks the selected check row with a cursor arrow", () => {
+  const { lastFrame } = render(<Detail pr={pr} checks={checks} checkCursor={1} focused theme={getTheme("mocha")} width={80} visibleRows={10} />);
+  expect(lastFrame()).toMatch(/❯ .*test \(unit\)/);      // arrow on the selected row
+  expect((lastFrame()!.match(/❯/g) ?? []).length).toBe(1); // only the selected row
+});
+
 test("shows placeholder when no PR selected", () => {
   const { lastFrame } = render(<Detail pr={null} checks={[]} checkCursor={0} focused theme={getTheme("mocha")} width={80} visibleRows={10} />);
   expect(lastFrame()).toMatch(/Select a PR/i);
