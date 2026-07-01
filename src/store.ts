@@ -37,6 +37,8 @@ export function createStore(deps: Deps): Store {
   let prsInFlight = false;
   let checksInFlight = false;
   let listHandle: unknown, checksHandle: unknown;
+  const requeuedUntil = new Map<number, number>();
+  const REQUEUE_SUPPRESS_MS = 45_000;
 
   const emit = () => { for (const fn of subs) fn(); };
   const set = (patch: Partial<StoreState>) => { state = { ...state, ...patch }; emit(); };
@@ -50,9 +52,11 @@ export function createStore(deps: Deps): Store {
       // existing entry for the currently-selected PR — it's owned by loadChecks
       // (fast poll + stale guard). Read selectedPr *now*, after the await (S2).
       const sel = state.selectedPr;
+      const now = Date.now();
       const merged: Record<number, Check[]> = {};
       for (const p of prs) {
-        merged[p.number] = p.number === sel && state.checks[p.number] ? state.checks[p.number] : (checks[p.number] ?? []);
+        const protectedPr = p.number === sel || (requeuedUntil.get(p.number) ?? 0) > now;
+        merged[p.number] = protectedPr && state.checks[p.number] ? state.checks[p.number] : (checks[p.number] ?? []);
       }
       set({ prs, checks: merged, error: null });
     }
@@ -93,6 +97,7 @@ export function createStore(deps: Deps): Store {
           ? { ...c, status: "in_progress" as const, conclusion: null, startedAt: now, completedAt: null }
           : c,
       );
+      requeuedUntil.set(prNumber, Date.now() + REQUEUE_SUPPRESS_MS);
       set({ checks: { ...state.checks, [prNumber]: updated } });
       // No immediate reload: GitHub hasn't propagated the new attempt yet, so a
       // refetch now would just clobber this optimistic flip with the stale failed

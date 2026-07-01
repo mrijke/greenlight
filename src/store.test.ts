@@ -74,3 +74,26 @@ test("loadPrs populates checks for all PRs, protects the selected PR, and drops 
   await store.refreshNow();
   expect(store.getState().checks[2]).toBeUndefined();
 });
+
+test("list poll does not clobber a requeued PR's flip until the suppression window lapses", async () => {
+  vi.useFakeTimers();
+  try {
+    const { timer } = fakeTimer();
+    const failed = () => [check({ name: "test", conclusion: "failure", workflowRunId: 501 })];
+    const loadPrs = vi.fn().mockResolvedValue({ prs: [pr(1), pr(2)], checks: { 1: failed(), 2: [] } });
+    const loadChecks = vi.fn().mockResolvedValue(failed());
+    const store = createStore({ loadPrs, loadChecks, timer, listMs: 1, checksMs: 1 });
+    store.selectPr(1);
+    await store.refreshNow();
+    store.markRequeued(1, [501]);                    // flip #1's failed check to pending
+    store.selectPr(2);                               // navigate away from #1
+    expect(store.getState().checks[1]?.[0].status).toBe("in_progress");
+    await store.refreshNow();                        // stale list poll still shows failure
+    expect(store.getState().checks[1]?.[0].status).toBe("in_progress"); // preserved
+    vi.advanceTimersByTime(60_000);                  // window lapses (>45s)
+    await store.refreshNow();
+    expect(store.getState().checks[1]?.[0].status).toBe("completed");   // now reconciles
+  } finally {
+    vi.useRealTimers();
+  }
+});
