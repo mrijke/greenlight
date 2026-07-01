@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.5.0](https://github.com/mrijke/greenlight/compare/v0.4.0...v0.5.0) (2026-07-01)
+
+
+### Features
+
+* sort check groups by status, then alphabetically ([488aac8](https://github.com/mrijke/greenlight/commit/488aac82edce21ef19d268705755be7aa1c9e088))
+
 ## [0.4.0](https://github.com/mrijke/greenlight/compare/v0.3.0...v0.4.0) (2026-07-01)
 
 
