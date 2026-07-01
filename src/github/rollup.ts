@@ -18,7 +18,7 @@ export interface RollupCheckRun {
   startedAt: string | null;
   completedAt: string | null;
   databaseId: number | null;
-  checkSuite: { databaseId: number | null; workflowRun: { databaseId: number | null } | null } | null;
+  checkSuite: { databaseId: number | null; workflowRun: { databaseId: number | null; workflow?: { name: string | null } | null } | null } | null;
 }
 export interface RollupStatusContext {
   __typename: "StatusContext";
@@ -36,13 +36,13 @@ export function mapRollupContexts(nodes: RollupContext[]): Check[] {
         name: n.name, status: mapStatus(n.status), conclusion: mapConclusion(n.conclusion),
         detailsUrl: n.detailsUrl ?? null, startedAt: n.startedAt ?? null, completedAt: n.completedAt ?? null,
         checkRunId: n.databaseId ?? null, checkSuiteId: n.checkSuite?.databaseId ?? null,
-        workflowRunId: n.checkSuite?.workflowRun?.databaseId ?? null, isStatusContext: false,
+        workflowRunId: n.checkSuite?.workflowRun?.databaseId ?? null, workflowName: n.checkSuite?.workflowRun?.workflow?.name ?? null, isStatusContext: false,
       };
     }
     return {
       name: n.context, status: mapStateStatus(n.state), conclusion: mapStateConclusion(n.state),
       detailsUrl: n.targetUrl ?? null, startedAt: n.createdAt ?? null, completedAt: null,
-      checkRunId: null, checkSuiteId: null, workflowRunId: null, isStatusContext: true,
+      checkRunId: null, checkSuiteId: null, workflowRunId: null, workflowName: null, isStatusContext: true,
     };
   });
 }

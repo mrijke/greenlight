@@ -3,7 +3,7 @@ import { createStore } from "./store.js";
 import type { Check, PullRequest } from "./types.js";
 
 const pr = (number: number): PullRequest => ({ number, title: `pr${number}`, url: "", isCrossRepository: false, mergeable: "MERGEABLE", headRefName: "h", baseRefName: "main", headSha: "s" });
-const check = (o: Partial<Check>): Check => ({ name: "c", status: "completed", conclusion: "success", detailsUrl: null, startedAt: null, completedAt: null, checkRunId: null, checkSuiteId: null, workflowRunId: null, isStatusContext: false, ...o });
+const check = (o: Partial<Check>): Check => ({ name: "c", status: "completed", conclusion: "success", detailsUrl: null, startedAt: null, completedAt: null, checkRunId: null, checkSuiteId: null, workflowRunId: null, workflowName: null, isStatusContext: false, ...o });
 const fakeTimer = () => { const handles: (() => void)[] = []; return { timer: { setInterval: (fn: () => void) => { handles.push(fn); return handles.length - 1; }, clearInterval: () => {} }, tick: async () => { for (const h of [...handles]) h(); await Promise.resolve(); } }; };
 
 test("loads PRs and checks for selected PR", async () => {

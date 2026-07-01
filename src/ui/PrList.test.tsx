@@ -8,7 +8,7 @@ import type { PullRequest, Check, RepoTarget } from "../types.js";
 const target: RepoTarget = { owner: "acme", repo: "widget", viewerLogin: "me", viewerCanWrite: true };
 const mkPr = (n: number, title: string): PullRequest => ({ number: n, title, url: "", isCrossRepository: false, mergeable: "MERGEABLE", headRefName: "a", baseRefName: "main", headSha: "s" });
 const prs: PullRequest[] = [mkPr(142, "Fix auth flow")];
-const checks: Record<number, Check[]> = { 142: [{ name: "test", status: "completed", conclusion: "failure", detailsUrl: null, startedAt: null, completedAt: null, checkRunId: null, checkSuiteId: null, workflowRunId: null, isStatusContext: false }] };
+const checks: Record<number, Check[]> = { 142: [{ name: "test", status: "completed", conclusion: "failure", detailsUrl: null, startedAt: null, completedAt: null, checkRunId: null, checkSuiteId: null, workflowRunId: null, workflowName: null, isStatusContext: false }] };
 
 test("renders PR number, full title and a fail glyph", () => {
   const { lastFrame } = render(<PrList prs={prs} checks={checks} selected={142} focused theme={getTheme("mocha")} width={80} visibleRows={6} target={target} />);

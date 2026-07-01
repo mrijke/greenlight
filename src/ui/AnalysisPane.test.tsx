@@ -5,7 +5,7 @@ import { AnalysisPane } from "./AnalysisPane.js";
 import { getTheme } from "../theme.js";
 import type { Check, HeuristicResult } from "../types.js";
 
-const check: Check = { name: "test (e2e)", status: "completed", conclusion: "failure", detailsUrl: "u", startedAt: null, completedAt: null, checkRunId: 1, checkSuiteId: 1, workflowRunId: 1, isStatusContext: false };
+const check: Check = { name: "test (e2e)", status: "completed", conclusion: "failure", detailsUrl: "u", startedAt: null, completedAt: null, checkRunId: 1, checkSuiteId: 1, workflowRunId: 1, workflowName: null, isStatusContext: false };
 const heuristic: HeuristicResult = { verdict: "likely_flaky", confidence: 0.72, failingStep: "Run e2e suite", errorLines: ["Error: ETIMEDOUT connect 30000ms"], signals: ["timeout"] };
 
 test("renders verdict, error line, title and footer hints", () => {

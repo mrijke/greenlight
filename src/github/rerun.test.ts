@@ -4,7 +4,7 @@ import { canRerun, failedRunIds, rerunFailed } from "./rerun.js";
 import type { Check, RepoTarget } from "../types.js";
 
 const target: RepoTarget = { owner: "acme", repo: "widget", viewerLogin: "me", viewerCanWrite: true };
-const mk = (over: Partial<Check>): Check => ({ name: "c", status: "completed", conclusion: "success", detailsUrl: null, startedAt: null, completedAt: null, checkRunId: null, checkSuiteId: null, workflowRunId: null, isStatusContext: false, ...over });
+const mk = (over: Partial<Check>): Check => ({ name: "c", status: "completed", conclusion: "success", detailsUrl: null, startedAt: null, completedAt: null, checkRunId: null, checkSuiteId: null, workflowRunId: null, workflowName: null, isStatusContext: false, ...over });
 
 test("failedRunIds dedups runs and ignores passing/non-failure checks", () => {
   const checks = [

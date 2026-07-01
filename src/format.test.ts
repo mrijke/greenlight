@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 import { checkCounts, formatDuration, glyph, truncate, windowRows } from "./format.js";
 import type { Check } from "./types.js";
 
-const mk = (o: Partial<Check>): Check => ({ name: "c", status: "completed", conclusion: "success", detailsUrl: null, startedAt: null, completedAt: null, checkRunId: null, checkSuiteId: null, workflowRunId: null, isStatusContext: false, ...o });
+const mk = (o: Partial<Check>): Check => ({ name: "c", status: "completed", conclusion: "success", detailsUrl: null, startedAt: null, completedAt: null, checkRunId: null, checkSuiteId: null, workflowRunId: null, workflowName: null, isStatusContext: false, ...o });
 
 test("glyph reflects state", () => {
   expect(glyph(mk({ conclusion: "success" }))).toBe("✓");

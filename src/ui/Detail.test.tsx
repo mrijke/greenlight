@@ -6,7 +6,7 @@ import { getTheme } from "../theme.js";
 import type { PullRequest, Check } from "../types.js";
 
 const pr: PullRequest = { number: 142, title: "Fix auth flow", url: "", isCrossRepository: false, mergeable: "MERGEABLE", headRefName: "feat/auth", baseRefName: "main", headSha: "s" };
-const mkCheck = (name: string, conclusion: Check["conclusion"]): Check => ({ name, status: "completed", conclusion, detailsUrl: null, startedAt: "2026-06-29T10:00:00Z", completedAt: "2026-06-29T10:01:12Z", checkRunId: 1, checkSuiteId: 1, workflowRunId: 1, isStatusContext: false });
+const mkCheck = (name: string, conclusion: Check["conclusion"]): Check => ({ name, status: "completed", conclusion, detailsUrl: null, startedAt: "2026-06-29T10:00:00Z", completedAt: "2026-06-29T10:01:12Z", checkRunId: 1, checkSuiteId: 1, workflowRunId: 1, workflowName: null, isStatusContext: false });
 const checks: Check[] = [mkCheck("build", "success"), mkCheck("test (unit)", "failure")];
 
 test("renders header and checks with durations", () => {
