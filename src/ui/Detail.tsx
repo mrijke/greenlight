@@ -22,6 +22,7 @@ export function Detail({ pr, checks, checkCursor, focused, theme, width, visible
     <Box flexDirection="column" width={width} borderStyle="round" borderColor={borderColor} paddingX={1}>
       <Text color={theme.title}>#{pr.number} {truncate(pr.title, Math.max(8, inner - 8))}</Text>
       <Text color={theme.meta}>{pr.headRefName} → {pr.baseRefName}{pr.isCrossRepository ? " (fork)" : ""}</Text>
+      {pr.mergeable === "CONFLICTING" ? <Text color={theme.conflict}>⚠ merge conflict</Text> : null}
       <Text color={theme.border}>{"─".repeat(inner)}</Text>
       {win.rows.map((c, i) => {
         const isSel = checks.indexOf(c) === checkCursor;
