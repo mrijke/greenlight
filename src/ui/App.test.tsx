@@ -8,7 +8,7 @@ import type { Check, PullRequest, RepoTarget } from "../types.js";
 
 const target: RepoTarget = { owner: "acme", repo: "widget", viewerLogin: "me", viewerCanWrite: true };
 const prs: PullRequest[] = [{ number: 142, title: "Fix auth flow", url: "u", isCrossRepository: false, mergeable: "MERGEABLE", headRefName: "a", baseRefName: "main", headSha: "s" }];
-const checks: Check[] = [{ name: "test", status: "completed", conclusion: "failure", detailsUrl: null, startedAt: null, completedAt: null, checkRunId: 1, checkSuiteId: 1, workflowRunId: 1, isStatusContext: false }];
+const checks: Check[] = [{ name: "test", status: "completed", conclusion: "failure", detailsUrl: null, startedAt: null, completedAt: null, checkRunId: 1, checkSuiteId: 1, workflowRunId: 1, workflowName: null, isStatusContext: false }];
 const noTimer = { setInterval: () => 0, clearInterval: () => {} };
 const sleep = (ms: number) => new Promise((r) => setTimeout(r, ms));
 

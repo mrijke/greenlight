@@ -4,7 +4,7 @@ import { fetchFailureContext, trimLog } from "./logs.js";
 import type { Check, RepoTarget } from "../types.js";
 
 const target: RepoTarget = { owner: "acme", repo: "widget", viewerLogin: "me", viewerCanWrite: true };
-const check: Check = { name: "test (unit)", status: "completed", conclusion: "failure", detailsUrl: null, startedAt: null, completedAt: null, checkRunId: 12, checkSuiteId: 91, workflowRunId: 501, isStatusContext: false };
+const check: Check = { name: "test (unit)", status: "completed", conclusion: "failure", detailsUrl: null, startedAt: null, completedAt: null, checkRunId: 12, checkSuiteId: 91, workflowRunId: 501, workflowName: null, isStatusContext: false };
 
 test("trimLog keeps the tail within maxLines", () => {
   const raw = Array.from({ length: 500 }, (_, i) => `line ${i}`).join("\n");

@@ -13,6 +13,7 @@ export interface Check {
   checkRunId: number | null;     // CheckRun.databaseId — for annotations
   checkSuiteId: number | null;   // CheckSuite.databaseId
   workflowRunId: number | null;  // CheckSuite.workflowRun.databaseId — for rerun/logs
+  workflowName: string | null;   // CheckRun workflow display name; null for status contexts
   isStatusContext: boolean;      // legacy commit status vs Actions check run
 }
 

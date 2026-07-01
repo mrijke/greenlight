@@ -2,7 +2,7 @@ import { expect, test } from "vitest";
 import { classify } from "./heuristic.js";
 import type { Check, FailureContext } from "../types.js";
 
-const baseCheck: Check = { name: "test", status: "completed", conclusion: "failure", detailsUrl: null, startedAt: null, completedAt: null, checkRunId: 1, checkSuiteId: 1, workflowRunId: 1, isStatusContext: false };
+const baseCheck: Check = { name: "test", status: "completed", conclusion: "failure", detailsUrl: null, startedAt: null, completedAt: null, checkRunId: 1, checkSuiteId: 1, workflowRunId: 1, workflowName: null, isStatusContext: false };
 const ctx = (over: Partial<FailureContext>): FailureContext => ({ jobName: "test", failingStep: "Run tests", logSlice: "", annotations: [], runAttempt: 1, ...over });
 
 test("network timeout reads as likely flaky", () => {

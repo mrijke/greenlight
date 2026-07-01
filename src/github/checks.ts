@@ -10,7 +10,7 @@ query($owner: String!, $repo: String!, $number: Int!) {
         __typename
         ... on CheckRun {
           name status conclusion detailsUrl startedAt completedAt databaseId
-          checkSuite { databaseId workflowRun { databaseId } }
+          checkSuite { databaseId workflowRun { databaseId workflow { name } } }
         }
         ... on StatusContext { context state targetUrl createdAt }
       } } } } } }

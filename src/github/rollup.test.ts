@@ -24,3 +24,13 @@ test("maps check runs and legacy status contexts to Check[]", () => {
 test("empty nodes yields no checks", () => {
   expect(mapRollupContexts([])).toEqual([]);
 });
+
+test("maps workflow name from CheckRun and null for status contexts", () => {
+  const checks = mapRollupContexts([
+    { __typename: "CheckRun", name: "ci-cd", status: "COMPLETED", conclusion: "SUCCESS", detailsUrl: null, startedAt: null, completedAt: null, databaseId: 21, checkSuite: { databaseId: 91, workflowRun: { databaseId: 700, workflow: { name: "Project A" } } } },
+    { __typename: "StatusContext", context: "ci/legacy", state: "SUCCESS", targetUrl: null, createdAt: null },
+  ]);
+  expect(checks[0].workflowName).toBe("Project A");
+  expect(checks[0].workflowRunId).toBe(700);
+  expect(checks[1].workflowName).toBeNull();
+});
