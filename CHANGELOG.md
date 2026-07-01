@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.4.0](https://github.com/mrijke/greenlight/compare/v0.3.0...v0.4.0) (2026-07-01)
+
+
+### Features
+
+* carry workflow name through the checks rollup ([8db7edf](https://github.com/mrijke/greenlight/commit/8db7edfe73eb804d3709e91226924979198bd74f))
+* group the checks pane by workflow with collapsible headers ([59ece47](https://github.com/mrijke/greenlight/commit/59ece47bd542c891d5e2b0c2c7e2d7eea4b47a81))
+* pure module for grouping checks by workflow ([2f8365f](https://github.com/mrijke/greenlight/commit/2f8365f5c8185cacf906165b84a6d476d9283049))
+
 ## [0.3.0](https://github.com/mrijke/greenlight/compare/v0.2.0...v0.3.0) (2026-07-01)
 
 
