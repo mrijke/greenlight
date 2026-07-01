@@ -40,6 +40,7 @@ export function PrList({ prs, checks, selected, focused, theme, width, visibleRo
             <Text color={isSel ? theme.selection : undefined}>#{pr.number} </Text>
             <Text>{truncate(pr.title, titleWidth)} </Text>
             <Text color={theme.meta}>{`✓${pass} ✗${fail} •${pending}`}</Text>
+            {pr.mergeable === "CONFLICTING" ? <Text color={theme.conflict}> ⚠</Text> : null}
           </Box>
         );
       })}

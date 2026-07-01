@@ -41,3 +41,9 @@ test("shows placeholder when no PR selected", () => {
   const { lastFrame } = render(<Detail pr={null} checks={[]} checkCursor={0} focused theme={getTheme("mocha")} width={80} visibleRows={10} />);
   expect(lastFrame()).toMatch(/Select a PR/i);
 });
+
+test("shows a merge-conflict line when the PR is CONFLICTING", () => {
+  const conflicted: PullRequest = { ...pr, mergeable: "CONFLICTING" };
+  const { lastFrame } = render(<Detail pr={conflicted} checks={checks} checkCursor={0} focused theme={getTheme("mocha")} width={80} visibleRows={10} />);
+  expect(lastFrame()).toMatch(/⚠ merge conflict/);
+});

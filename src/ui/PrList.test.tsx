@@ -27,3 +27,10 @@ test("empty state names the viewer and repo", () => {
   const { lastFrame } = render(<PrList prs={[]} checks={{}} selected={null} focused theme={getTheme("mocha")} width={80} visibleRows={1} target={target} />);
   expect(lastFrame()).toMatch(/No open PRs by @me in[\s\S]*acme\/widget/i);
 });
+
+test("shows a conflict marker only for CONFLICTING PRs", () => {
+  const conflicting = [{ ...mkPr(142, "Fix auth flow"), mergeable: "CONFLICTING" as const }];
+  const clean = [{ ...mkPr(142, "Fix auth flow"), mergeable: "UNKNOWN" as const }];
+  expect(render(<PrList prs={conflicting} checks={{}} selected={142} focused theme={getTheme("mocha")} width={80} visibleRows={6} target={target} />).lastFrame()).toContain("⚠");
+  expect(render(<PrList prs={clean} checks={{}} selected={142} focused theme={getTheme("mocha")} width={80} visibleRows={6} target={target} />).lastFrame()).not.toContain("⚠");
+});
