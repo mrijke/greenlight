@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.6.0](https://github.com/mrijke/greenlight/compare/v0.5.0...v0.6.0) (2026-07-02)
+
+
+### Features
+
+* add an approved badge to the PR title ([c597399](https://github.com/mrijke/greenlight/commit/c597399aac4ab56309df09cea648aca5ed865429))
+
+
+### Bug Fixes
+
+* use a distinct star glyph for the approved badge ([68c17a5](https://github.com/mrijke/greenlight/commit/68c17a579495a3b437c5d4603d772f2af2aae0e1))
+
 ## [0.5.0](https://github.com/mrijke/greenlight/compare/v0.4.0...v0.5.0) (2026-07-01)
 
 
