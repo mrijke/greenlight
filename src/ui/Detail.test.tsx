@@ -64,7 +64,7 @@ test("shows a merge-conflict line when the PR is CONFLICTING", () => {
 test("shows an approved badge next to the title when reviewDecision is APPROVED", () => {
   const approved: PullRequest = { ...pr, reviewDecision: "APPROVED" };
   const { lastFrame } = render(<Detail pr={approved} rows={rowsFor(new Set())} cursor={0} focused theme={getTheme("mocha")} width={80} visibleRows={10} />);
-  expect(lastFrame()).toMatch(/✓ approved/);
+  expect(lastFrame()).toMatch(/✦ approved/);
 });
 
 test("hides the approved badge when reviewDecision is not APPROVED", () => {
