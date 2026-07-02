@@ -40,6 +40,6 @@ test("shows an approved badge only for PRs with reviewDecision APPROVED", () => 
   const unreviewed = [{ ...mkPr(142, "Fix auth flow"), reviewDecision: null }];
   const { lastFrame: approvedFrame } = render(<PrList prs={approved} checks={{}} selected={142} focused theme={getTheme("mocha")} width={80} visibleRows={6} target={target} />);
   const { lastFrame: unreviewedFrame } = render(<PrList prs={unreviewed} checks={{}} selected={142} focused theme={getTheme("mocha")} width={80} visibleRows={6} target={target} />);
-  expect(approvedFrame()).toMatch(/Fix auth flow ✓ ✓0 ✗0 •0/);
-  expect(unreviewedFrame()).not.toMatch(/Fix auth flow ✓ ✓0 ✗0 •0/);
+  expect(approvedFrame()).toMatch(/Fix auth flow ✦ ✓0 ✗0 •0/);
+  expect(unreviewedFrame()).not.toContain("✦");
 });
