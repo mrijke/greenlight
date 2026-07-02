@@ -7,7 +7,7 @@ import { getTheme } from "../theme.js";
 import type { Check, PullRequest, RepoTarget } from "../types.js";
 
 const target: RepoTarget = { owner: "acme", repo: "widget", viewerLogin: "me", viewerCanWrite: true };
-const prs: PullRequest[] = [{ number: 142, title: "Fix auth flow", url: "u", isCrossRepository: false, mergeable: "MERGEABLE", headRefName: "a", baseRefName: "main", headSha: "s" }];
+const prs: PullRequest[] = [{ number: 142, title: "Fix auth flow", url: "u", isCrossRepository: false, mergeable: "MERGEABLE", reviewDecision: null, headRefName: "a", baseRefName: "main", headSha: "s" }];
 const checks: Check[] = [{ name: "test", status: "completed", conclusion: "failure", detailsUrl: null, startedAt: null, completedAt: null, checkRunId: 1, checkSuiteId: 1, workflowRunId: 1, isStatusContext: false, workflowName: "CI" }];
 const mkc = (o: Partial<Check>): Check => ({ name: "c", status: "completed", conclusion: "success", detailsUrl: null, startedAt: null, completedAt: null, checkRunId: null, checkSuiteId: null, workflowRunId: null, isStatusContext: false, workflowName: null, ...o });
 const noTimer = { setInterval: () => 0, clearInterval: () => {} };
@@ -153,8 +153,8 @@ test("↑/↓ traverse group headers and their children", async () => {
 
 test("switching PRs resets expansion overrides", async () => {
   const prs2: PullRequest[] = [
-    { number: 142, title: "First", url: "u", isCrossRepository: false, mergeable: "MERGEABLE", headRefName: "a", baseRefName: "main", headSha: "s" },
-    { number: 143, title: "Second", url: "u", isCrossRepository: false, mergeable: "MERGEABLE", headRefName: "b", baseRefName: "main", headSha: "s" },
+    { number: 142, title: "First", url: "u", isCrossRepository: false, mergeable: "MERGEABLE", reviewDecision: null, headRefName: "a", baseRefName: "main", headSha: "s" },
+    { number: 143, title: "Second", url: "u", isCrossRepository: false, mergeable: "MERGEABLE", reviewDecision: null, headRefName: "b", baseRefName: "main", headSha: "s" },
   ];
   const byPr: Record<number, Check[]> = {
     142: [mkc({ name: "one", workflowRunId: 1, workflowName: "CI", conclusion: "failure", checkRunId: 1 })],

@@ -26,6 +26,7 @@ export interface PullRequest {
   url: string;
   isCrossRepository: boolean;    // fork PR
   mergeable: "MERGEABLE" | "CONFLICTING" | "UNKNOWN";
+  reviewDecision: "APPROVED" | "CHANGES_REQUESTED" | "REVIEW_REQUIRED" | null;
 }
 
 export interface RepoTarget {
