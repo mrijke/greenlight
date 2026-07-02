@@ -6,7 +6,7 @@ import { getTheme } from "../theme.js";
 import { groupChecks, flattenRows } from "./checkGroups.js";
 import type { PullRequest, Check } from "../types.js";
 
-const pr: PullRequest = { number: 142, title: "Fix auth flow", url: "", isCrossRepository: false, mergeable: "MERGEABLE", headRefName: "feat/auth", baseRefName: "main", headSha: "s" };
+const pr: PullRequest = { number: 142, title: "Fix auth flow", url: "", isCrossRepository: false, mergeable: "MERGEABLE", reviewDecision: null, headRefName: "feat/auth", baseRefName: "main", headSha: "s" };
 const mk = (o: Partial<Check>): Check => ({ name: "c", status: "completed", conclusion: "success", detailsUrl: null, startedAt: "2026-06-29T10:00:00Z", completedAt: "2026-06-29T10:01:12Z", checkRunId: 1, checkSuiteId: 1, workflowRunId: 1, isStatusContext: false, workflowName: null, ...o });
 
 const checks: Check[] = [
@@ -59,4 +59,15 @@ test("shows a merge-conflict line when the PR is CONFLICTING", () => {
   const conflicted: PullRequest = { ...pr, mergeable: "CONFLICTING" };
   const { lastFrame } = render(<Detail pr={conflicted} rows={rowsFor(new Set())} cursor={0} focused theme={getTheme("mocha")} width={80} visibleRows={10} />);
   expect(lastFrame()).toMatch(/⚠ merge conflict/);
+});
+
+test("shows an approved badge next to the title when reviewDecision is APPROVED", () => {
+  const approved: PullRequest = { ...pr, reviewDecision: "APPROVED" };
+  const { lastFrame } = render(<Detail pr={approved} rows={rowsFor(new Set())} cursor={0} focused theme={getTheme("mocha")} width={80} visibleRows={10} />);
+  expect(lastFrame()).toMatch(/✓ approved/);
+});
+
+test("hides the approved badge when reviewDecision is not APPROVED", () => {
+  const { lastFrame } = render(<Detail pr={pr} rows={rowsFor(new Set())} cursor={0} focused theme={getTheme("mocha")} width={80} visibleRows={10} />);
+  expect(lastFrame()).not.toMatch(/approved/);
 });

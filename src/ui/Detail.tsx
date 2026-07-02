@@ -21,7 +21,10 @@ export function Detail({ pr, rows, cursor, focused, theme, width, visibleRows }:
   const win = windowRows(rows, cursor, overflow ? Math.max(1, visibleRows - 1) : visibleRows);
   return (
     <Box flexDirection="column" width={width} borderStyle="round" borderColor={borderColor} paddingX={1}>
-      <Text color={theme.title}>#{pr.number} {truncate(pr.title, Math.max(8, inner - 8))}</Text>
+      <Box>
+        <Text color={theme.title}>#{pr.number} {truncate(pr.title, Math.max(8, inner - 8))}</Text>
+        {pr.reviewDecision === "APPROVED" ? <Text color={theme.approved}> ✓ approved</Text> : null}
+      </Box>
       <Text color={theme.meta}>{pr.headRefName} → {pr.baseRefName}{pr.isCrossRepository ? " (fork)" : ""}</Text>
       {pr.mergeable === "CONFLICTING" ? <Text color={theme.conflict}>⚠ merge conflict</Text> : null}
       <Text color={theme.border}>{"─".repeat(inner)}</Text>

@@ -17,3 +17,10 @@ test("mocha has a conflict token distinct from flag", () => {
   expect(t.conflict).toBeTruthy();
   expect(t.conflict).not.toBe(t.flag);
 });
+
+test("mocha has an approved token distinct from pass and conflict", () => {
+  const t = getTheme("mocha");
+  expect(t.approved).toBeTruthy();
+  expect(t.approved).not.toBe(t.pass);
+  expect(t.approved).not.toBe(t.conflict);
+});

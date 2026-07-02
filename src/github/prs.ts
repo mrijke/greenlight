@@ -7,7 +7,7 @@ query($q: String!) {
   search(query: $q, type: ISSUE, first: 50) {
     nodes {
       ... on PullRequest {
-        number title url isCrossRepository mergeable
+        number title url isCrossRepository mergeable reviewDecision
         headRefName baseRefName headRefOid
         commits(last: 1) { nodes { commit { statusCheckRollup { contexts(first: 50) { nodes {
           __typename
@@ -25,6 +25,7 @@ query($q: String!) {
 interface SearchNode {
   number: number; title: string; url: string; isCrossRepository: boolean;
   mergeable: PullRequest["mergeable"];
+  reviewDecision: PullRequest["reviewDecision"];
   headRefName: string; baseRefName: string; headRefOid: string;
   commits: { nodes: { commit: { statusCheckRollup: { contexts: { nodes: RollupContext[] } } | null } }[] } | null;
 }
@@ -43,7 +44,8 @@ export async function listMyOpenPrs(
     if (typeof n.number !== "number") continue;
     prs.push({
       number: n.number, title: n.title, url: n.url, isCrossRepository: n.isCrossRepository,
-      mergeable: n.mergeable, headRefName: n.headRefName, baseRefName: n.baseRefName, headSha: n.headRefOid,
+      mergeable: n.mergeable, reviewDecision: n.reviewDecision,
+      headRefName: n.headRefName, baseRefName: n.baseRefName, headSha: n.headRefOid,
     });
     checks[n.number] = mapRollupContexts(rollupNodes(n));
   }
