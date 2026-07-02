@@ -1,9 +1,9 @@
 { "search": { "nodes": [
-  { "number": 142, "title": "Fix auth flow", "url": "https://github.com/acme/widget/pull/142", "isCrossRepository": false, "mergeable": "CONFLICTING", "headRefName": "feat/auth", "baseRefName": "main", "headRefOid": "abc123",
+  { "number": 142, "title": "Fix auth flow", "url": "https://github.com/acme/widget/pull/142", "isCrossRepository": false, "mergeable": "CONFLICTING", "reviewDecision": "APPROVED", "headRefName": "feat/auth", "baseRefName": "main", "headRefOid": "abc123",
     "commits": { "nodes": [ { "commit": { "statusCheckRollup": { "contexts": { "nodes": [
       { "__typename": "CheckRun", "name": "build", "status": "COMPLETED", "conclusion": "SUCCESS", "detailsUrl": null, "startedAt": null, "completedAt": null, "databaseId": 11, "checkSuite": { "databaseId": 91, "workflowRun": { "databaseId": 501 } } },
       { "__typename": "CheckRun", "name": "test", "status": "COMPLETED", "conclusion": "FAILURE", "detailsUrl": null, "startedAt": null, "completedAt": null, "databaseId": 12, "checkSuite": { "databaseId": 91, "workflowRun": { "databaseId": 501 } } }
     ] } } } } ] } },
-  { "number": 138, "title": "Bump deps", "url": "https://github.com/acme/widget/pull/138", "isCrossRepository": false, "mergeable": "MERGEABLE", "headRefName": "deps", "baseRefName": "main", "headRefOid": "def456",
+  { "number": 138, "title": "Bump deps", "url": "https://github.com/acme/widget/pull/138", "isCrossRepository": false, "mergeable": "MERGEABLE", "reviewDecision": null, "headRefName": "deps", "baseRefName": "main", "headRefOid": "def456",
     "commits": { "nodes": [ { "commit": { "statusCheckRollup": null } } ] } }
 ] } }

@@ -39,6 +39,7 @@ export function PrList({ prs, checks, selected, focused, theme, width, visibleRo
             {top ? <Text color={glyphColor(top, theme)}>{glyph(top)} </Text> : <Text>  </Text>}
             <Text color={isSel ? theme.selection : undefined}>#{pr.number} </Text>
             <Text>{truncate(pr.title, titleWidth)} </Text>
+            {pr.reviewDecision === "APPROVED" ? <Text color={theme.approved}>✓ </Text> : null}
             <Text color={theme.meta}>{`✓${pass} ✗${fail} •${pending}`}</Text>
             {pr.mergeable === "CONFLICTING" ? <Text color={theme.conflict}> ⚠</Text> : null}
           </Box>
