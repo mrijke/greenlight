@@ -51,7 +51,7 @@
     "octokit": "5.0.5",
     "openai": "6.45.0",
     "react": "19.2.7",
-    "zod": "4.4.3"
+    "zod": "4.6.4"
   },
   "devDependencies": {
     "@types/node": "26.4.1",
